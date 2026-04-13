@@ -1,10 +1,27 @@
 package com.example.santabarbaramobile.data.model
 
-// El DTO (Data Transfer Object) que viaja entre Node.js, Java y Kotlin
+import com.google.gson.annotations.SerializedName
+
+data class HomeResponse(
+    val featured: List<Show>,
+    val topRated: List<Show>,
+    val recent: List<Show>,
+    val ended: List<Show>
+)
+
 data class Show(
-    val id: Int,
+    val tvmazeId: Int,
     val name: String,
     val summary: String?,
-    val imageUrl: String?,
-    val category: String?
+    val image: ImageResponse?,
+    val rating: RatingResponse?
+)
+
+data class ImageResponse(
+    val medium: String?,
+    val original: String?
+)
+
+data class RatingResponse(
+    val average: Double?
 )
