@@ -16,6 +16,7 @@ import com.example.santabarbaramobile.ui.auth.ViewModels.LoginViewModel
 import com.example.santabarbaramobile.ui.auth.ViewModels.RegisterViewModel
 import com.example.santabarbaramobile.ui.navigation.AuthScreen
 import com.example.santabarbaramobile.ui.theme.SantaBarbaraMobileTheme
+import com.example.santabarbaramobile.ui.auth.Screens.MainHubScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -24,14 +25,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             SantaBarbaraMobileTheme {
-                AuthNavigation()
+                AppNavigation()
             }
         }
     }
 }
 
 @Composable
-fun AuthNavigation() {
+fun AppNavigation() {
     val navController = rememberNavController()
 
     NavHost(
@@ -42,6 +43,11 @@ fun AuthNavigation() {
             val loginViewModel: LoginViewModel = hiltViewModel()
             LoginScreen(
                 viewModel = loginViewModel,
+                onNavigateToMainHub = {
+                    navController.navigate("main_hub") {
+                        popUpTo(AuthScreen.Login.route) { inclusive = true }
+                    }
+                },
                 onNavigateToRegister = {
                     navController.navigate(AuthScreen.Register.route)
                 },
@@ -67,6 +73,14 @@ fun AuthNavigation() {
                 viewModel = forgotViewModel,
                 onNavigateBack = {
                     navController.popBackStack()
+                }
+            )
+        }
+
+        composable("main_hub") {
+            MainHubScreen(
+                onShowClick = { showId ->
+                    // Lógica future deidad: navController.navigate("details/$showId")
                 }
             )
         }
