@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
@@ -33,7 +34,8 @@ import com.example.santabarbaramobile.ui.auth.ViewModels.MainHubViewModel
 @Composable
 fun MainHubScreen(
     viewModel: MainHubViewModel = hiltViewModel(),
-    onShowClick: (Int) -> Unit = {}
+    onNavigateToProfile: () -> Unit,
+    onNavigateToShowDetail: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -41,6 +43,16 @@ fun MainHubScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("FilmTracker", fontWeight = FontWeight.Bold) },
+                actions = {
+                    IconButton(onClick = onNavigateToProfile) {
+                        Icon(
+                            imageVector = Icons.Default.AccountCircle,
+                            contentDescription = "Ir al Perfil",
+                            modifier = Modifier.size(28.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
@@ -63,7 +75,7 @@ fun MainHubScreen(
                         featured = state.data.featured,
                         topRated = state.data.topRated,
                         recent = state.data.recent,
-                        onShowClick = onShowClick
+                        onShowClick = onNavigateToShowDetail
                     )
                 }
             }
@@ -76,7 +88,7 @@ private fun MainContent(
     featured: List<Show>,
     topRated: List<Show>,
     recent: List<Show>,
-    onShowClick: (Int) -> Unit
+    onShowClick: (String) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -91,7 +103,7 @@ private fun MainContent(
         item { SectionHeader("Series Nuevas") }
         item { MediaCarousel(recent, onShowClick) }
 
-        // Series Para Maratonear TODO
+        // TODO Series para maratonear y selección de editores
     }
 }
 
@@ -107,13 +119,13 @@ private fun SectionHeader(title: String) {
 }
 
 @Composable
-private fun MediaCarousel(shows: List<Show>, onShowClick: (Int) -> Unit) {
+private fun MediaCarousel(shows: List<Show>, onShowClick: (String) -> Unit) {
     LazyRow(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(shows, key = { it.tvmazeId }) { show ->
-            MediaCard(show = show, onClick = { onShowClick(show.tvmazeId) })
+            MediaCard(show = show, onClick = { onShowClick(show.tvmazeId.toString()) })
         }
     }
 }

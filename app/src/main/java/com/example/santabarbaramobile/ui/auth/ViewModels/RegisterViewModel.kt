@@ -2,16 +2,19 @@ package com.example.santabarbaramobile.ui.auth.ViewModels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.santabarbaramobile.data.remote.auth.RegisterRequest
+import com.example.santabarbaramobile.data.repository.AuthRepository
 import com.example.santabarbaramobile.ui.auth.States.RegisterState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class RegisterViewModel @Inject constructor() : ViewModel() {
+class RegisterViewModel @Inject constructor(
+    private val authRepository: AuthRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow<RegisterState>(RegisterState.Idle)
     val uiState = _uiState.asStateFlow()
@@ -27,11 +30,17 @@ class RegisterViewModel @Inject constructor() : ViewModel() {
             return
         }
 
-        viewModelScope.launch {
-            _uiState.value = RegisterState.Loading
-            delay(2000)
 
-            _uiState.value = RegisterState.Success("Cuenta creada para $name")
+        _uiState.value = RegisterState.Loading
+
+        viewModelScope.launch {
+            val result = authRepository.register(RegisterRequest(email, pass))
+
+            result.onSuccess {
+                _uiState.value = RegisterState.Success("Cuenta creada exitosamente para $email. ¡Ya puedes iniciar sesión!")
+            }.onFailure { error ->
+                _uiState.value = RegisterState.Error(error.message ?: "El usuario ya existe o hubo un error en el servidor.")
+            }
         }
     }
 
