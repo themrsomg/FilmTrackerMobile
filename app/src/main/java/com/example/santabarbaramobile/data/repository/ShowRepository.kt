@@ -1,6 +1,7 @@
 package com.example.santabarbaramobile.data.repository
 
 import com.example.santabarbaramobile.data.model.HomeResponse
+import com.example.santabarbaramobile.data.model.Show
 import com.example.santabarbaramobile.data.remote.SantaBarbaraApi
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -13,6 +14,19 @@ class ShowRepository @Inject constructor(
         try {
             val response = api.getHomeData()
             Result.success(response)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getShowDetails(showId: String): Result<Show> = withContext(Dispatchers.IO) {
+        try {
+            val response = api.getShowById(showId)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception("Error al cargar los detalles de la serie"))
+            }
         } catch (e: Exception) {
             Result.failure(e)
         }
