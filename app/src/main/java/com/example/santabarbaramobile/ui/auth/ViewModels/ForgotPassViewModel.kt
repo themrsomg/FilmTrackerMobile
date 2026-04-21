@@ -3,6 +3,7 @@ package com.example.santabarbaramobile.ui.auth.ViewModels
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.santabarbaramobile.data.repository.AuthRepository
 import com.example.santabarbaramobile.ui.auth.States.ForgotPassState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -10,10 +11,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.random.Random
 
 @HiltViewModel
-class ForgotPassViewModel @Inject constructor() : ViewModel() {
+class ForgotPassViewModel @Inject constructor(
+    private val authRepository: AuthRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ForgotPassState>(ForgotPassState.Idle)
     val uiState = _uiState.asStateFlow()
@@ -26,11 +28,13 @@ class ForgotPassViewModel @Inject constructor() : ViewModel() {
             return
         }
 
+        _uiState.value = ForgotPassState.Loading
+
         viewModelScope.launch {
-            _uiState.value = ForgotPassState.Loading
+            // TODO: Cambiar por llamada real a authRepository.forgotPassword(email)
             delay(1500)
+
             generatedCode = "1234"
-                // Random.nextInt(1000, 9999).toString() Así debe ser, pero para calar lo dejamos en 1234
             _uiState.value = ForgotPassState.EmailSent
         }
     }
@@ -55,6 +59,7 @@ class ForgotPassViewModel @Inject constructor() : ViewModel() {
 
         viewModelScope.launch {
             _uiState.value = ForgotPassState.Loading
+            // TODO: Llamada al repositorio para actualizar la clave (PATCH /api/auth/reset-password)
             delay(2000)
             _uiState.value = ForgotPassState.Success
         }

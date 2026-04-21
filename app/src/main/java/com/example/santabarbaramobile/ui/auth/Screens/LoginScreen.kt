@@ -17,7 +17,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.santabarbaramobile.ui.auth.ViewModels.LoginUiState
+import com.example.santabarbaramobile.ui.auth.States.LoginState
 import com.example.santabarbaramobile.ui.auth.ViewModels.LoginViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,7 +34,7 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
 
     LaunchedEffect(uiState) {
-        if (uiState is LoginUiState.Success) {
+        if (uiState is LoginState.Success) {
             onNavigateToMainHub()
         }
     }
@@ -68,7 +68,7 @@ fun LoginScreen(
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next
                 ),
-                enabled = uiState !is LoginUiState.Loading
+                enabled = uiState !is LoginState.Loading
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -86,18 +86,18 @@ fun LoginScreen(
                     imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(
-                    onDone = { viewModel.performLogin(email, password) }
+                    onDone = { viewModel.onLoginAttempt(email, password) }
                 ),
-                enabled = uiState !is LoginUiState.Loading
+                enabled = uiState !is LoginState.Loading
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            if (uiState is LoginUiState.Loading) {
+            if (uiState is LoginState.Loading) {
                 CircularProgressIndicator()
             } else {
                 Button(
-                    onClick = { viewModel.performLogin(email, password) },
+                    onClick = { viewModel.onLoginAttempt(email, password) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp)
@@ -106,9 +106,9 @@ fun LoginScreen(
                 }
             }
 
-            if (uiState is LoginUiState.Error) {
+            if (uiState is LoginState.Error) {
                 Text(
-                    text = (uiState as LoginUiState.Error).message,
+                    text = (uiState as LoginState.Error).message,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(top = 16.dp)
@@ -119,14 +119,14 @@ fun LoginScreen(
 
             TextButton(
                 onClick = onNavigateToForgot,
-                enabled = uiState !is LoginUiState.Loading
+                enabled = uiState !is LoginState.Loading
             ) {
                 Text("¿Olvidaste tu contraseña?")
             }
 
             TextButton(
                 onClick = onNavigateToRegister,
-                enabled = uiState !is LoginUiState.Loading
+                enabled = uiState !is LoginState.Loading
             ) {
                 Text("¿No tienes cuenta? Regístrate")
             }
