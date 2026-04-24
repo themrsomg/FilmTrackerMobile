@@ -128,7 +128,6 @@ fun AppNavigation() {
             route = "show_detail/{showId}",
             arguments = listOf(navArgument("showId") { type = NavType.StringType })
         ) { backStackEntry ->
-
             val showId = backStackEntry.arguments?.getString("showId")
 
             if (!showId.isNullOrEmpty()) {
@@ -137,7 +136,10 @@ fun AppNavigation() {
                 ShowDetailScreen(
                     showId = showId,
                     viewModel = viewModel,
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToShowDetail = { newShowId ->
+                        navController.navigate("show_detail/$newShowId")
+                    }
                 )
             } else {
                 Box(

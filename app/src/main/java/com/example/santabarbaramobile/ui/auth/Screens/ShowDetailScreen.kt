@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.core.text.HtmlCompat
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,7 +42,8 @@ import com.example.santabarbaramobile.ui.auth.ViewModels.ShowDetailViewModel
 fun ShowDetailScreen(
     showId: String,
     viewModel: ShowDetailViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToShowDetail: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -96,6 +98,16 @@ fun ShowDetailScreen(
                         }
                     }
 
+                    if (uiState.similarShows.isNotEmpty()) {
+                        item {
+                            Text(
+                                "Series Similares", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                            SimilarShowsCarousel(uiState.similarShows, onNavigateToShowDetail)
+                        }
+                    }
+
                     if (uiState.cast.isNotEmpty()) {
                         item {
                             Text(
@@ -125,10 +137,18 @@ fun ShowDetailScreen(
 
 @Composable
 private fun ShowHeader(show: Show) {
+    val cleanSummary = remember(show.summary) {
+        if (show.summary.isNullOrEmpty()) {
+            "Sin descripción disponible."
+        } else {
+            HtmlCompat.fromHtml(show.summary, HtmlCompat.FROM_HTML_MODE_COMPACT).toString()
+        }
+    }
+
     Box(modifier = Modifier.fillMaxWidth().height(450.dp)) {
         AsyncImage(
             model = show.image?.original ?: show.image?.medium,
-            contentDescription = "Poster de ${show.name}",
+            contentDescription = "Poster",
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
@@ -145,7 +165,7 @@ private fun ShowHeader(show: Show) {
         ) {
             Text(show.name, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Black)
             Spacer(modifier = Modifier.height(8.dp))
-            Text(show.summary ?: "", style = MaterialTheme.typography.bodyMedium, maxLines = 4, overflow = TextOverflow.Ellipsis)
+            Text(cleanSummary, style = MaterialTheme.typography.bodyMedium, maxLines = 4, overflow = TextOverflow.Ellipsis)
         }
     }
 }
@@ -219,6 +239,40 @@ private fun EpisodeRow(episode: Episode) {
         Column(modifier = Modifier.weight(1f)) {
             Text("${episode.number}. ${episode.name}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
             Text(episode.summary ?: "Sin descripción.", style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis, color = Color.Gray)
+        }
+    }
+}
+
+@Composable
+private fun SimilarShowsCarousel(shows: List<Show>, onShowClick: (String) -> Unit) {
+    LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        items(shows) { show ->
+            Card(
+                modifier = Modifier.size(width = 120.dp, height = 180.dp),
+                shape = RoundedCornerShape(8.dp),
+                onClick = { onShowClick(show.tvmazeId.toString()) }
+            ) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    AsyncImage(
+                        model = show.image?.medium ?: show.image?.original,
+                        contentDescription = show.name,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    Box(modifier = Modifier.fillMaxSize().background(
+                        Brush.verticalGradient(colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.8f)), startY = 200f)
+                    ))
+                    Text(
+                        text = show.name,
+                        color = Color.White,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.align(Alignment.BottomStart).padding(8.dp)
+                    )
+                }
+            }
         }
     }
 }

@@ -10,5 +10,6 @@ data class ShowDetailState(
     val show: Show? = null,
     val cast: List<CastMember> = emptyList(),
     val seasonsWithEpisodes: Map<Season, List<Episode>> = emptyMap(),
+    val similarShows: List<Show> = emptyList(),
     val error: String? = null
 )

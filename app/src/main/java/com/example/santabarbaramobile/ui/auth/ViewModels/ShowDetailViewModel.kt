@@ -23,7 +23,6 @@ class ShowDetailViewModel @Inject constructor(
 
     fun fetchFullShowDetails(showId: String) {
         if (_uiState.value.show?.tvmazeId?.toString() == showId) return
-
         _uiState.update { it.copy(isLoading = true, error = null) }
 
         viewModelScope.launch {
@@ -33,11 +32,22 @@ class ShowDetailViewModel @Inject constructor(
                     val castDeferred = async { api.getShowCast(showId).body()?.cast ?: emptyList() }
                     val seasonsDeferred = async { api.getShowSeasons(showId).body()?.seasons ?: emptyList() }
                     val episodesDeferred = async { api.getShowEpisodes(showId).body()?.episodes ?: emptyList() }
-
                     val show = showDeferred.await()
+                    val similarShowsDeferred = async {
+                        val firstGenre = show?.genres?.firstOrNull()
+                        if (firstGenre != null) {
+                            api.getShowsByGenre(firstGenre).body()?.results ?: emptyList()
+                        } else {
+                            emptyList()
+                        }
+                    }
+
                     val cast = castDeferred.await()
                     val seasons = seasonsDeferred.await().sortedBy { it.number }
                     val allEpisodes = episodesDeferred.await()
+
+                    val similarShows =
+                        similarShowsDeferred.await().filter { it.tvmazeId.toString() != showId }
 
                     val groupedEpisodes = seasons.associateWith { season ->
                         allEpisodes.filter { it.season == season.number }.sortedBy { it.number }
@@ -45,10 +55,21 @@ class ShowDetailViewModel @Inject constructor(
 
                     if (show != null) {
                         _uiState.update {
-                            it.copy(isLoading = false, show = show, cast = cast, seasonsWithEpisodes = groupedEpisodes)
+                            it.copy(
+                                isLoading = false,
+                                show = show,
+                                cast = cast,
+                                seasonsWithEpisodes = groupedEpisodes,
+                                similarShows = similarShows
+                            )
                         }
                     } else {
-                        _uiState.update { it.copy(isLoading = false, error = "Serie no encontrada") }
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                error = "Serie no encontrada"
+                            )
+                        }
                     }
                 }
             } catch (e: Exception) {
