@@ -7,6 +7,7 @@ import com.example.santabarbaramobile.data.model.Episode
 import com.example.santabarbaramobile.data.model.CastMember
 import com.example.santabarbaramobile.data.model.CastResponse
 import com.example.santabarbaramobile.data.model.EpisodeResponse
+import com.example.santabarbaramobile.data.model.GenreResponse
 import com.example.santabarbaramobile.data.model.SeasonResponse
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -27,4 +28,7 @@ interface SantaBarbaraApi {
 
     @GET("api/shows/{id}/cast")
     suspend fun getShowCast(@Path("id") showId: String): Response<CastResponse>
+
+    @GET("api/shows/by-genre/{genre}")
+    suspend fun getShowsByGenre(@Path("genre") genre: String): Response<GenreResponse>
 }
