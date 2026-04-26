@@ -1,6 +1,8 @@
 package com.example.santabarbaramobile.ui.auth.Screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -8,7 +10,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -19,15 +23,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.example.santabarbaramobile.R
 import com.example.santabarbaramobile.data.model.Show
-import com.example.santabarbaramobile.ui.auth.ViewModels.HomeUiState
+import com.example.santabarbaramobile.ui.auth.States.HomeUiState
 import com.example.santabarbaramobile.ui.auth.ViewModels.MainHubViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,51 +42,110 @@ fun MainHubScreen(
     onNavigateToProfile: () -> Unit,
     onNavigateToShowDetail: (String) -> Unit
 ) {
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
+    val isSearchActive by viewModel.isSearchActive.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("FilmTracker", fontWeight = FontWeight.Bold) },
-                actions = {
-                    IconButton(onClick = onNavigateToProfile) {
-                        Icon(
-                            imageVector = Icons.Default.AccountCircle,
-                            contentDescription = "Ir al Perfil",
-                            modifier = Modifier.size(28.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+            Column {
+                CenterAlignedTopAppBar(
+                    title = { Text("FilmTracker", fontWeight = FontWeight.Bold) },
+                    actions = {
+                        IconButton(onClick = onNavigateToProfile) {
+                            Icon(
+                                imageVector = Icons.Default.AccountCircle,
+                                contentDescription = "Ir al Perfil",
+                                modifier = Modifier.size(28.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
                 )
-            )
+
+                SearchBar(
+                    query = searchQuery,
+                    onQueryChange = { viewModel.onSearchQueryChange(it) },
+                    onSearch = { viewModel.setSearchActive(false) },
+                    active = isSearchActive,
+                    onActiveChange = { viewModel.setSearchActive(it) },
+                    placeholder = { Text("Buscar series...") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
+                    trailingIcon = {
+                        if (isSearchActive) {
+                            IconButton(onClick = { viewModel.setSearchActive(false) }) {
+                                Icon(Icons.Default.Close, contentDescription = "Cerrar búsqueda")
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = if (isSearchActive) 0.dp else 16.dp)
+                        .padding(bottom = 8.dp)
+                ) {
+                    if (searchQuery.trim().lowercase() == "jaire") {
+                        EasterEggContent()
+                    } else if (searchResults.isNotEmpty()) {
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            items(searchResults, key = { it.tvmazeId }) { show ->
+                                ListItem(
+                                    headlineContent = { Text(show.name, fontWeight = FontWeight.Bold) },
+                                    supportingContent = { Text(show.genres.joinToString(", "), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                    leadingContent = {
+                                        AsyncImage(
+                                            model = show.image?.medium,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(56.dp).clip(RoundedCornerShape(8.dp)),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    },
+                                    modifier = Modifier.clickable {
+                                        viewModel.setSearchActive(false)
+                                        onNavigateToShowDetail(show.tvmazeId.toString())
+                                    }
+                                )
+                                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            }
+                        }
+                    } else if (searchQuery.isNotEmpty()) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("No se encontraron resultados para '$searchQuery'", color = Color.Gray)
+                        }
+                    }
+                }
+            }
         }
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-            when (val state = uiState) {
-                is HomeUiState.Loading -> LoadingView()
-                is HomeUiState.Error -> ErrorView(message = state.message) {
-                    viewModel.fetchHomeData()
-                }
-                is HomeUiState.Success -> {
-                    MainContent(
-                        featured = state.data.featured,
-                        topRated = state.data.topRated,
-                        recent = state.data.recent,
-                        onShowClick = onNavigateToShowDetail
-                    )
+        if (!isSearchActive) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .background(MaterialTheme.colorScheme.background)
+            ) {
+                when (val state = uiState) {
+                    is HomeUiState.Loading -> LoadingView()
+                    is HomeUiState.Error -> ErrorView(message = state.message) {
+                        viewModel.fetchHomeData()
+                    }
+                    is HomeUiState.Success -> {
+                        MainContent(
+                            featured = state.data.featured,
+                            topRated = state.data.topRated,
+                            recent = state.data.recent,
+                            onShowClick = onNavigateToShowDetail
+                        )
+                    }
                 }
             }
         }
     }
 }
+
 
 @Composable
 private fun MainContent(
@@ -226,6 +290,30 @@ private fun ErrorView(message: String, onRetry: () -> Unit) {
             Icon(Icons.Default.Refresh, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
             Text("Reintentar")
+        }
+    }
+}
+
+@Composable
+fun EasterEggContent() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Image(
+                painter = painterResource(id = R.drawable.jaire_egg),
+                contentDescription = "Easter Egg Jaire",
+                modifier = Modifier.size(250.dp).clip(RoundedCornerShape(16.dp)),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                "¡Has encontrado a Jaire Alexander!",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }
