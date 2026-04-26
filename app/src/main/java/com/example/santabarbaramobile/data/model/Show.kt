@@ -1,10 +1,10 @@
 package com.example.santabarbaramobile.data.model
 
 data class HomeResponse(
-    val featured: List<Show>,
-    val topRated: List<Show>,
-    val recent: List<Show>,
-    val ended: List<Show>
+    val featured: List<Show> = emptyList(),
+    val topRated: List<Show> = emptyList(),
+    val recent: List<Show> = emptyList(),
+    val ended: List<Show> = emptyList()
 )
 
 data class Show(
@@ -28,4 +28,9 @@ data class RatingResponse(
 data class GenreResponse(
     val genre: String,
     val results: List<Show>
+)
+
+data class SearchResultItem(
+    val score: Double,
+    val show: Show
 )
