@@ -109,16 +109,17 @@ fun AppNavigation() {
             val profileViewModel: ProfileViewModel = hiltViewModel()
 
             ProfileScreen(
+                viewModel = profileViewModel,
                 onNavigateBack = {
                     navController.popBackStack()
                 },
                 onLogout = {
                     profileViewModel.logout()
-
                     navController.navigate(AuthScreen.Login.route) {
-                        popUpTo(navController.graph.id) {
+                        popUpTo(0) {
                             inclusive = true
                         }
+                        launchSingleTop = true
                     }
                 }
             )
