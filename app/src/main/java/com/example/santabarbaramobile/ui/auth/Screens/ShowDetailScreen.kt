@@ -14,8 +14,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.core.text.HtmlCompat
@@ -56,6 +60,23 @@ fun ShowDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { viewModel.toggleFavorite(showId) }) {
+                        Icon(
+                            imageVector = if (uiState.isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                            contentDescription = if (uiState.isFavorite) "Quitar de favoritos" else "Agregar a favoritos",
+                            tint = if (uiState.isFavorite) Color.Red else MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    IconButton(onClick = { viewModel.toggleWatchlist(showId) }) {
+                        Icon(
+                            imageVector = if (uiState.isInWatchlist) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+                            contentDescription = if (uiState.isInWatchlist) "Quitar de watchlist" else "Agregar a watchlist",
+                            tint = if (uiState.isInWatchlist) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -225,20 +246,43 @@ private fun ExpandableSeasonCard(season: Season, episodes: List<Episode>) {
 
 @Composable
 private fun EpisodeRow(episode: Episode) {
+    val cleanSummary = remember(episode.summary) {
+        if (episode.summary.isNullOrEmpty()) {
+            "Sin descripción."
+        } else {
+            HtmlCompat.fromHtml(episode.summary, HtmlCompat.FROM_HTML_MODE_COMPACT).toString()
+        }
+    }
+
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(
             model = episode.image?.medium,
-            contentDescription = "Imagen episodio",
+            contentDescription = "Imagen del episodio: ${episode.name}",
             contentScale = ContentScale.Crop,
-            modifier = Modifier.size(120.dp, 68.dp).clip(RoundedCornerShape(8.dp)).background(Color.Gray)
+            modifier = Modifier
+                .size(120.dp, 68.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color.Gray)
         )
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text("${episode.number}. ${episode.name}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
-            Text(episode.summary ?: "Sin descripción.", style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis, color = Color.Gray)
+            Text(
+                text = "${episode.number}. ${episode.name}",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = cleanSummary,
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                color = Color.Gray
+            )
         }
     }
 }

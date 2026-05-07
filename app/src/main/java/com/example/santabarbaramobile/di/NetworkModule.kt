@@ -3,6 +3,7 @@ package com.example.santabarbaramobile.di
 import android.util.Log
 import com.example.santabarbaramobile.data.remote.SantaBarbaraApi
 import com.example.santabarbaramobile.data.remote.auth.AuthApi
+import com.example.santabarbaramobile.data.remote.library.UserLibraryApi
 import com.example.santabarbaramobile.data.remote.users.UsersApi
 import dagger.Module
 import dagger.Provides
@@ -28,31 +29,18 @@ annotation class AuthRetrofit
 @Retention(AnnotationRetention.BINARY)
 annotation class UsersRetrofit
 
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class LibraryRetrofit
+
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
     private const val SHOWS_BASE_URL = "http://10.0.2.2:3001/"
-    private const val AUTH_BASE_URL = "http://10.0.2.2:3003/"
     private const val USERS_BASE_URL = "http://10.0.2.2:3002/"
-
-
-    @Provides
-    @Singleton
-    @UsersRetrofit
-    fun provideUsersRetrofit(okHttpClient: OkHttpClient): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl(USERS_BASE_URL)
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-    }
-
-    @Provides
-    @Singleton
-    fun provideUsersApi(@UsersRetrofit retrofit: Retrofit): UsersApi {
-        return retrofit.create(UsersApi::class.java)
-    }
+    private const val AUTH_BASE_URL = "http://10.0.2.2:3003/"
+    private const val LIBRARY_BASE_URL = "http://10.0.2.2:3004/"
 
     @Provides
     @Singleton
@@ -89,10 +77,32 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @UsersRetrofit
+    fun provideUsersRetrofit(okHttpClient: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(USERS_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    @Provides
+    @Singleton
     @AuthRetrofit
     fun provideAuthRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
             .baseUrl(AUTH_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    @LibraryRetrofit
+    fun provideLibraryRetrofit(okHttpClient: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(LIBRARY_BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -106,7 +116,19 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    fun provideUsersApi(@UsersRetrofit retrofit: Retrofit): UsersApi {
+        return retrofit.create(UsersApi::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun provideAuthApi(@AuthRetrofit retrofit: Retrofit): AuthApi {
         return retrofit.create(AuthApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserLibraryApi(@LibraryRetrofit retrofit: Retrofit): UserLibraryApi {
+        return retrofit.create(UserLibraryApi::class.java)
     }
 }

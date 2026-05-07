@@ -11,5 +11,7 @@ data class ShowDetailState(
     val cast: List<CastMember> = emptyList(),
     val seasonsWithEpisodes: Map<Season, List<Episode>> = emptyMap(),
     val similarShows: List<Show> = emptyList(),
+    val isFavorite: Boolean = false,
+    val isInWatchlist: Boolean = false,
     val error: String? = null
 )
