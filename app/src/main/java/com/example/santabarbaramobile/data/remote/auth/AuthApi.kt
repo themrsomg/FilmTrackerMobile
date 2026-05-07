@@ -2,8 +2,6 @@ package com.example.santabarbaramobile.data.remote.auth
 
 import retrofit2.Response
 import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.Header
 import retrofit2.http.POST
 
 interface AuthApi {
@@ -14,5 +12,5 @@ interface AuthApi {
     suspend fun register(@Body request: RegisterRequest): Response<RegisterResponse>
 
     @POST("api/auth/forgot-password")
-    suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<Unit>
+    suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<ForgotPasswordResponse>
 }

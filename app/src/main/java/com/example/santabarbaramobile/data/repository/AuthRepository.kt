@@ -1,6 +1,13 @@
 package com.example.santabarbaramobile.data.repository
 
-import com.example.santabarbaramobile.data.remote.auth.*
+import com.example.santabarbaramobile.data.remote.auth.ForgotPasswordRequest
+import com.example.santabarbaramobile.data.remote.auth.ForgotPasswordResponse
+import com.example.santabarbaramobile.data.remote.auth.LoginRequest
+import com.example.santabarbaramobile.data.remote.auth.LoginResponse
+import com.example.santabarbaramobile.data.remote.auth.RegisterRequest
+import com.example.santabarbaramobile.data.remote.auth.RegisterResponse
+import com.example.santabarbaramobile.data.remote.auth.UserResponse
+import com.example.santabarbaramobile.data.remote.auth.AuthApi
 import com.example.santabarbaramobile.data.remote.users.UsersApi
 import com.example.santabarbaramobile.data.security.TokenManager
 import kotlinx.coroutines.Dispatchers
@@ -26,12 +33,12 @@ class AuthRepository @Inject constructor(
                 tokenManager.saveToken(body.token)
                 Result.success(body)
             } else {
-                Result.failure(Exception("Error ${response.code()}: Credenciales inválidas"))
+                Result.failure(Exception("Credenciales invalidas. Verifica tu correo y contrasena."))
             }
         } catch (e: HttpException) {
             Result.failure(Exception("Error de servidor: ${e.message()}"))
         } catch (e: IOException) {
-            Result.failure(Exception("Sin conexión a internet. Por favor, verifica tu red."))
+            Result.failure(Exception("Sin conexion con el servidor. Verifica que Docker este corriendo."))
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -45,12 +52,31 @@ class AuthRepository @Inject constructor(
             if (response.isSuccessful && body != null) {
                 Result.success(body)
             } else {
-                Result.failure(Exception("Error ${response.code()}: El usuario ya existe o los datos son inválidos"))
+                Result.failure(Exception("No se pudo crear la cuenta. Revisa si el email o username ya existen."))
             }
         } catch (e: HttpException) {
             Result.failure(Exception("Error de servidor: ${e.message()}"))
         } catch (e: IOException) {
-            Result.failure(Exception("Sin conexión a internet. Por favor, verifica tu red."))
+            Result.failure(Exception("Sin conexion con el servidor. Verifica que Docker este corriendo."))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun forgotPassword(email: String): Result<ForgotPasswordResponse> = withContext(Dispatchers.IO) {
+        try {
+            val response = authApi.forgotPassword(ForgotPasswordRequest(email))
+            val body = response.body()
+
+            if (response.isSuccessful && body != null) {
+                Result.success(body)
+            } else {
+                Result.failure(Exception("No se pudo solicitar la recuperacion de contrasena."))
+            }
+        } catch (e: HttpException) {
+            Result.failure(Exception("Error de servidor: ${e.message()}"))
+        } catch (e: IOException) {
+            Result.failure(Exception("Sin conexion con el servidor. Verifica que Docker este corriendo."))
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -61,9 +87,9 @@ class AuthRepository @Inject constructor(
             val response = usersApi.getProfile(token)
             Result.success(response)
         } catch (e: HttpException) {
-            Result.failure(Exception("Sesión expirada o token inválido"))
+            Result.failure(Exception("Sesion expirada o token invalido"))
         } catch (e: IOException) {
-            Result.failure(Exception("Sin conexión a internet."))
+            Result.failure(Exception("Sin conexion a internet."))
         } catch (e: Exception) {
             Result.failure(e)
         }

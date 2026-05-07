@@ -1,5 +1,6 @@
 package com.example.santabarbaramobile.ui.auth.ViewModels
 
+import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.santabarbaramobile.data.remote.auth.LoginRequest
@@ -9,8 +10,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
-import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,25 +21,25 @@ class LoginViewModel @Inject constructor(
     val uiState: StateFlow<Resource<Unit>?> = _uiState.asStateFlow()
 
     fun performLogin(email: String, pass: String) {
-        if (email.isBlank() || pass.isBlank()) {
-            _uiState.value = Resource.Error("Email y contraseña son obligatorios")
+        val normalizedEmail = email.trim()
+
+        if (normalizedEmail.isBlank() || pass.isBlank()) {
+            _uiState.value = Resource.Error("Email y contrasena son obligatorios")
+            return
+        }
+
+        if (!Patterns.EMAIL_ADDRESS.matcher(normalizedEmail).matches()) {
+            _uiState.value = Resource.Error("Escribe un correo valido")
             return
         }
 
         viewModelScope.launch {
             _uiState.value = Resource.Loading
-            try {
-                val request = LoginRequest(email, pass)
-                val response = repository.login(request)
-
-                _uiState.value = Resource.Success(Unit)
-            } catch (e: HttpException) {
-                _uiState.value = Resource.Error("Credenciales inválidas. Verifica tus datos.")
-            } catch (e: IOException) {
-                _uiState.value = Resource.Error("Error de red. Revisa tu conexión.")
-            } catch (e: Exception) {
-                _uiState.value = Resource.Error("Ocurrió un error inesperado.")
-            }
+            repository.login(LoginRequest(normalizedEmail, pass))
+                .onSuccess { _uiState.value = Resource.Success(Unit) }
+                .onFailure { error ->
+                    _uiState.value = Resource.Error(error.message ?: "No se pudo iniciar sesion")
+                }
         }
     }
 }

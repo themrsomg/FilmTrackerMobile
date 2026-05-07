@@ -167,7 +167,8 @@ private fun MainContent(
         item { SectionHeader("Series Nuevas") }
         item { MediaCarousel(recent, onShowClick) }
 
-        // TODO Series para maratonear y selección de editores
+        item { SectionHeader("Para maratonear") }
+        item { MediaCarousel(recent.asReversed(), onShowClick) }
     }
 }
 
