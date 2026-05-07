@@ -41,9 +41,6 @@ android {
     }
 }
 
-kotlin {
-    jvmToolchain(17)
-}
 kapt {
     correctErrorTypes = true
     javacOptions {

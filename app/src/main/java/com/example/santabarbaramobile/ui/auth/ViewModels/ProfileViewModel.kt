@@ -36,8 +36,11 @@ class ProfileViewModel @Inject constructor(
 
                 result.onSuccess { userResponse ->
                     uiState = uiState.copy(
+                        name = userResponse.name.orEmpty(),
                         username = userResponse.username,
                         email = userResponse.email,
+                        profileImage = userResponse.profileImage,
+                        isEmailVerified = userResponse.isEmailVerified,
                         isLoading = false
                     )
                 }.onFailure { exception ->

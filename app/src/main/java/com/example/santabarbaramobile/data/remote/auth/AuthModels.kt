@@ -4,41 +4,46 @@ import com.google.gson.annotations.SerializedName
 
 data class LoginRequest(val email: String, val password: String)
 data class ForgotPasswordRequest(val email: String)
+data class ForgotPasswordResponse(
+    @SerializedName("passwordResetEmailSent") val passwordResetEmailSent: Boolean = false
+)
 
 data class UserDto(
     val id: String,
     val email: String,
-    val role: String
+    val username: String? = null,
+    val role: String,
+    @SerializedName("emailVerified") val emailVerified: Boolean = false
 )
 
 data class RegisterResponse(
     val id: String,
     val email: String,
-    val role: String
+    val username: String,
+    val role: String,
+    @SerializedName("emailVerified") val emailVerified: Boolean = false,
+    @SerializedName("verificationEmailSent") val verificationEmailSent: Boolean = false
 )
 
 data class RegisterRequest(
     val email: String,
+    val name: String,
     val username: String,
-    val password: String
-)
-
-data class ProfileState(
-    val username: String = "",
-    val email: String = "",
-    val isLoading: Boolean = false,
-    val error: String? = null
+    val password: String,
+    val profileImage: String? = null
 )
 
 data class UserResponse(
     @SerializedName("id") val id: String,
+    @SerializedName("authId") val authId: String? = null,
+    @SerializedName("name") val name: String? = null,
     @SerializedName("username") val username: String,
     @SerializedName("email") val email: String,
-    @SerializedName("profilePicture") val profilePicture: String? = null
+    @SerializedName("profileImage") val profileImage: String? = null,
+    @SerializedName("isEmailVerified") val isEmailVerified: Boolean = false
 )
 
 data class LoginResponse(
     @SerializedName("token") val token: String,
-    @SerializedName("username") val username: String? = null,
-    @SerializedName("email") val email: String? = null
+    @SerializedName("user") val user: UserDto
 )
