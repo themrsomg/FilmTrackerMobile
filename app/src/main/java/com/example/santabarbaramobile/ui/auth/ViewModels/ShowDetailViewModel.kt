@@ -42,10 +42,18 @@ class ShowDetailViewModel @Inject constructor(
 
                     val isFavoriteDeferred = async {
                         try {
-                            val response = libraryRepository.getFavorites(token)
-                            val favoritesList = response.body()?.data ?: emptyList()
-                            favoritesList.any { it.tvmazeId.toString() == showId }
-                        } catch (e: Exception) { false }
+                            val response = libraryRepository.getFavorites(token, page = 1, limit = 49)
+
+                            if (response.isSuccessful) {
+                                val favoritesList = response.body()?.data ?: emptyList()
+                                favoritesList.any { it.tvmaze_id.toString() == showId }
+                            } else {
+                                false
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            false
+                        }
                     }
 
                     val isInWatchlistDeferred = async {
@@ -118,10 +126,16 @@ class ShowDetailViewModel @Inject constructor(
                     libraryRepository.addFavorite(token, LibraryRequest(tvMazeIdInt))
                 }
 
-                if (!response.isSuccessful) throw Exception("Error: ${response.code()}")
+                if (!response.isSuccessful && response.code() != 409) {
+                    throw Exception("Error del servidor: ${response.code()}")
+                }
+
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(isFavorite = currentlyFavorite, error = "No se pudo actualizar favoritos.")
+                    it.copy(
+                        isFavorite = currentlyFavorite,
+                        error = "No se pudo actualizar favoritos. Intenta de nuevo."
+                    )
                 }
             }
         }

@@ -1,5 +1,6 @@
 package com.example.santabarbaramobile.data.remote.library
 
+import com.google.gson.annotations.SerializedName
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -7,14 +8,19 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 data class LibraryRequest(val tvmazeId: Int)
 
 data class CheckResponse(val exists: Boolean)
 
-data class FavoriteItem(val tvmazeId: Int)
+data class FavoriteItem(
+    val tvmaze_id: Int
+)
 
-data class FavoritesResponse(val data: List<FavoriteItem>)
+data class FavoritesResponse(
+    val data: List<FavoriteItem>
+)
 
 interface UserLibraryApi {
     @POST("api/favorites")
@@ -31,7 +37,9 @@ interface UserLibraryApi {
 
     @GET("api/favorites")
     suspend fun getFavorites(
-        @Header("Authorization") token: String
+        @Header("Authorization") token: String,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 49
     ): Response<FavoritesResponse>
 
     @POST("api/watchlist")
