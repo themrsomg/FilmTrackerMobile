@@ -15,7 +15,14 @@ class UserRepository @Inject constructor(
 ) {
     suspend fun getUserProfile(token: String): Result<UserResponse> = withContext(Dispatchers.IO) {
         try {
-            Result.success(usersApi.getProfile(token))
+            val response = usersApi.getProfile(token)
+            val body = response.body()?.data
+
+            if (response.isSuccessful && body != null) {
+                Result.success(body)
+            } else {
+                Result.failure(Exception("No se pudo cargar el perfil del usuario"))
+            }
         } catch (e: HttpException) {
             Result.failure(Exception("Error HTTP: ${e.code()}"))
         } catch (e: IOException) {

@@ -4,8 +4,14 @@ import com.google.gson.annotations.SerializedName
 
 data class LoginRequest(val email: String, val password: String)
 data class ForgotPasswordRequest(val email: String)
-data class ForgotPasswordResponse(
-    @SerializedName("passwordResetEmailSent") val passwordResetEmailSent: Boolean = false
+
+data class ApiResponse<T>(
+    @SerializedName("message") val message: String,
+    @SerializedName("data") val data: T? = null
+)
+
+data class MessageResponse(
+    @SerializedName("message") val message: String
 )
 
 data class UserDto(

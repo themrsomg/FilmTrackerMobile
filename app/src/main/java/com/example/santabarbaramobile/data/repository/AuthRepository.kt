@@ -1,9 +1,8 @@
 package com.example.santabarbaramobile.data.repository
 
-import com.example.santabarbaramobile.data.remote.auth.ForgotPasswordRequest
-import com.example.santabarbaramobile.data.remote.auth.ForgotPasswordResponse
 import com.example.santabarbaramobile.data.remote.auth.LoginRequest
 import com.example.santabarbaramobile.data.remote.auth.LoginResponse
+import com.example.santabarbaramobile.data.remote.auth.ForgotPasswordRequest
 import com.example.santabarbaramobile.data.remote.auth.RegisterRequest
 import com.example.santabarbaramobile.data.remote.auth.RegisterResponse
 import com.example.santabarbaramobile.data.remote.auth.UserResponse
@@ -27,10 +26,11 @@ class AuthRepository @Inject constructor(
     suspend fun login(request: LoginRequest): Result<LoginResponse> = withContext(Dispatchers.IO) {
         try {
             val response = authApi.login(request)
-            val body = response.body()
+            val body = response.body()?.data
+            val token = body?.token
 
-            if (response.isSuccessful && body != null) {
-                tokenManager.saveToken(body.token)
+            if (response.isSuccessful && body != null && !token.isNullOrBlank()) {
+                tokenManager.saveToken(token)
                 Result.success(body)
             } else {
                 Result.failure(Exception("Credenciales invalidas. Verifica tu correo y contrasena."))
@@ -47,7 +47,7 @@ class AuthRepository @Inject constructor(
     suspend fun register(request: RegisterRequest): Result<RegisterResponse> = withContext(Dispatchers.IO) {
         try {
             val response = authApi.register(request)
-            val body = response.body()
+            val body = response.body()?.data
 
             if (response.isSuccessful && body != null) {
                 Result.success(body)
@@ -63,13 +63,12 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    suspend fun forgotPassword(email: String): Result<ForgotPasswordResponse> = withContext(Dispatchers.IO) {
+    suspend fun forgotPassword(email: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val response = authApi.forgotPassword(ForgotPasswordRequest(email))
-            val body = response.body()
 
-            if (response.isSuccessful && body != null) {
-                Result.success(body)
+            if (response.isSuccessful) {
+                Result.success(Unit)
             } else {
                 Result.failure(Exception("No se pudo solicitar la recuperacion de contrasena."))
             }
@@ -85,7 +84,13 @@ class AuthRepository @Inject constructor(
     suspend fun getUserProfile(token: String): Result<UserResponse> = withContext(Dispatchers.IO) {
         try {
             val response = usersApi.getProfile(token)
-            Result.success(response)
+            val body = response.body()?.data
+
+            if (response.isSuccessful && body != null) {
+                Result.success(body)
+            } else {
+                Result.failure(Exception("No se pudo cargar el perfil del usuario"))
+            }
         } catch (e: HttpException) {
             Result.failure(Exception("Sesion expirada o token invalido"))
         } catch (e: IOException) {
