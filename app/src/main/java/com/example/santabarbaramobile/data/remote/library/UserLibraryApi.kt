@@ -10,9 +10,13 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-data class LibraryRequest(val tvmazeId: Int)
+data class LibraryRequest(
+    val tvmazeId: Int
+)
 
-data class CheckResponse(val exists: Boolean)
+data class CheckResponse(
+    val exists: Boolean
+)
 
 data class FavoriteItem(
     val tvmaze_id: Int
@@ -59,4 +63,20 @@ interface UserLibraryApi {
         @Header("Authorization") token: String,
         @Path("tvmazeId") tvmazeId: String
     ): Response<CheckResponse>
+
+    @GET("api/library/watchlist/{userId}")
+    suspend fun getUserWatchlist(
+        @Header("Authorization") token: String,
+        @Path("userId") userId: String
+    ): Response<LibraryListResponse>
+
+    @GET("api/watchlist")
+    suspend fun getMyWatchlist(
+        @Header("Authorization") token: String
+    ): Response<LibraryListResponse>
+
+    @GET("api/favorites")
+    suspend fun getMyFavorites(
+        @Header("Authorization") token: String
+    ): Response<LibraryListResponse>
 }

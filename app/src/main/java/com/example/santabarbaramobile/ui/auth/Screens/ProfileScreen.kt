@@ -11,8 +11,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
@@ -34,10 +39,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.santabarbaramobile.data.remote.library.LibraryItemDto
+import com.example.santabarbaramobile.ui.auth.States.ProfileState
 import com.example.santabarbaramobile.ui.auth.ViewModels.ProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,7 +60,9 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mi perfil") },
+                title = {
+                    Text(if (state.isOwnProfile) "Mi perfil" else "Perfil de @${state.username}")
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
@@ -65,8 +75,8 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(20.dp),
-            contentAlignment = Alignment.Center
+                .padding(horizontal = 20.dp),
+            contentAlignment = if (state.isLoading) Alignment.Center else Alignment.TopCenter
         ) {
             when {
                 state.isLoading -> CircularProgressIndicator()
@@ -78,13 +88,15 @@ fun ProfileScreen(
 
 @Composable
 private fun ProfileContent(
-    state: com.example.santabarbaramobile.ui.auth.States.ProfileState,
+    state: ProfileState,
     onLogout: () -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(vertical = 20.dp)
     ) {
         if (state.profileImage.isNullOrBlank()) {
             Icon(
@@ -140,6 +152,22 @@ private fun ProfileContent(
             }
         }
 
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.Start
+        ) {
+            CarouselSection(title = "Watchlist", items = state.watchlist)
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            if (state.isOwnProfile) {
+                CarouselSection(title = "Mis Favoritos", items = state.favorites)
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
+
         if (!state.error.isNullOrEmpty()) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(
@@ -149,15 +177,16 @@ private fun ProfileContent(
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        OutlinedButton(
-            onClick = onLogout,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(Icons.Default.Logout, contentDescription = null)
-            Spacer(modifier = Modifier.size(8.dp))
-            Text("Cerrar sesion")
+        if (state.isOwnProfile) {
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = onLogout,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.Logout, contentDescription = null)
+                Spacer(modifier = Modifier.size(8.dp))
+                Text("Cerrar sesion")
+            }
         }
     }
 }
@@ -191,6 +220,82 @@ private fun ProfileRow(label: String, value: String) {
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold
             )
+        }
+    }
+}
+
+@Composable
+fun CarouselSection(title: String, items: List<LibraryItemDto>) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.padding(bottom = 8.dp)
+    )
+
+    if (items.isEmpty()) {
+        Text(
+            text = "No hay elementos en esta lista.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    } else {
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(items) { item ->
+                ShowCard(item)
+            }
+        }
+    }
+}
+
+@Composable
+fun ShowCard(item: LibraryItemDto) {
+    Card(
+        modifier = Modifier
+            .width(120.dp)
+            .height(180.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (item.imageUrl != null) {
+                AsyncImage(
+                    model = item.imageUrl,
+                    contentDescription = item.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Sin imagen",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomStart)
+                    .background(Color(0x99000000))
+                    .padding(8.dp)
+            ) {
+                Text(
+                    text = item.name ?: "Desconocido",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.White,
+                    maxLines = 1
+                )
+            }
         }
     }
 }

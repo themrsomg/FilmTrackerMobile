@@ -1,0 +1,13 @@
+package com.example.santabarbaramobile.data.remote.library
+
+import com.google.gson.annotations.SerializedName
+
+data class LibraryItemDto(
+    @SerializedName("tvmaze_id") val tvmazeId: Int,
+    val name: String? = null,
+    val imageUrl: String? = null
+)
+
+data class LibraryListResponse(
+    @SerializedName("data") val data: List<LibraryItemDto>
+)
