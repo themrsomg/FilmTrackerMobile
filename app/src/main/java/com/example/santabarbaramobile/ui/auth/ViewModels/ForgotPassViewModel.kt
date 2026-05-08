@@ -23,31 +23,21 @@ class ForgotPassViewModel @Inject constructor(
         val normalizedEmail = email.trim()
 
         if (!Patterns.EMAIL_ADDRESS.matcher(normalizedEmail).matches()) {
-            _uiState.value = ForgotPassState.Error("Email no valido")
+            _uiState.value = ForgotPassState.Error("Email no válido")
             return
         }
 
         viewModelScope.launch {
             _uiState.value = ForgotPassState.Loading
             authRepository.forgotPassword(normalizedEmail)
-                .onSuccess { _uiState.value = ForgotPassState.Success }
+                .onSuccess {
+                    _uiState.value = ForgotPassState.Success
+                }
                 .onFailure { error ->
                     _uiState.value = ForgotPassState.Error(
-                        error.message ?: "No se pudo enviar el correo de recuperacion"
+                        error.message ?: "No se pudo procesar la solicitud"
                     )
                 }
         }
-    }
-
-    fun verifyCode(code: String) {
-        _uiState.value = ForgotPassState.Error(
-            "La recuperacion se completa desde el enlace enviado por correo."
-        )
-    }
-
-    fun resetPassword(newPass: String, confirmPass: String) {
-        _uiState.value = ForgotPassState.Error(
-            "Abre el enlace del correo para crear una contrasena nueva."
-        )
     }
 }

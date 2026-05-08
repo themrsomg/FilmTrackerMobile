@@ -1,32 +1,11 @@
 package com.example.santabarbaramobile.ui.auth.Screens
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -62,12 +41,12 @@ fun ForgotPasswordScreen(
                 .padding(20.dp)
         ) {
             Text(
-                text = "Restablece tu contrasena",
+                text = "Restablece tu contraseña",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Black
             )
             Text(
-                text = "Te enviaremos un correo con el enlace de recuperacion configurado por el backend.",
+                text = "Te enviaremos un correo con el enlace de recuperación configurado por el servidor.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 6.dp, bottom = 18.dp)
@@ -82,22 +61,22 @@ fun ForgotPasswordScreen(
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
-                        label = { Text("Email") },
+                        label = { Text("Correo electrónico") },
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        singleLine = true,
+                        enabled = state !is ForgotPassState.Success
                     )
 
                     Spacer(modifier = Modifier.height(18.dp))
 
                     Button(
                         onClick = { viewModel.sendCode(email) },
-                        enabled = state !is ForgotPassState.Loading,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp)
+                        enabled = state !is ForgotPassState.Loading && state !is ForgotPassState.Success,
+                        modifier = Modifier.fillMaxWidth().height(50.dp)
                     ) {
                         if (state is ForgotPassState.Loading) {
                             CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
                                 color = MaterialTheme.colorScheme.onPrimary
                             )
                         } else {
@@ -109,7 +88,7 @@ fun ForgotPasswordScreen(
                         is ForgotPassState.Success -> {
                             Spacer(modifier = Modifier.height(14.dp))
                             Text(
-                                text = "Listo. Si el correo existe, recibiras instrucciones para continuar.",
+                                text = "Listo. Si el correo existe, recibirás instrucciones para continuar.",
                                 color = MaterialTheme.colorScheme.primary,
                                 style = MaterialTheme.typography.bodyMedium
                             )
@@ -117,7 +96,6 @@ fun ForgotPasswordScreen(
                                 Text("Volver al login")
                             }
                         }
-
                         is ForgotPassState.Error -> {
                             Spacer(modifier = Modifier.height(14.dp))
                             Text(
@@ -126,7 +104,6 @@ fun ForgotPasswordScreen(
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
-
                         else -> Unit
                     }
                 }

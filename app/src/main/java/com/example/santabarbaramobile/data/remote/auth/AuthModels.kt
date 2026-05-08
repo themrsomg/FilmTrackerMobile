@@ -2,16 +2,28 @@ package com.example.santabarbaramobile.data.remote.auth
 
 import com.google.gson.annotations.SerializedName
 
-data class LoginRequest(val email: String, val password: String)
-data class ForgotPasswordRequest(val email: String)
+data class LoginRequest(
+    val email: String,
+    val password: String
+)
+
+data class ForgotPasswordRequest(
+    val email: String
+)
+
+data class ConfirmAccountRequest(
+    val email: String,
+    val code: String
+)
+
+data class VerifyEmailRequest(
+    val email: String,
+    val code: String
+)
 
 data class ApiResponse<T>(
     @SerializedName("message") val message: String,
     @SerializedName("data") val data: T? = null
-)
-
-data class MessageResponse(
-    @SerializedName("message") val message: String
 )
 
 data class UserDto(

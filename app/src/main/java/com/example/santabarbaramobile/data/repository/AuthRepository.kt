@@ -99,4 +99,23 @@ class AuthRepository @Inject constructor(
             Result.failure(e)
         }
     }
+
+    suspend fun verifyEmail(email: String, code: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val request = com.example.santabarbaramobile.data.remote.auth.VerifyEmailRequest(email, code)
+            val response = authApi.verifyEmail(request)
+
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("El código es incorrecto o ha expirado"))
+            }
+        } catch (e: retrofit2.HttpException) {
+            Result.failure(Exception("Error de servidor: ${e.message()}"))
+        } catch (e: java.io.IOException) {
+            Result.failure(Exception("Sin conexión con el servidor."))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
