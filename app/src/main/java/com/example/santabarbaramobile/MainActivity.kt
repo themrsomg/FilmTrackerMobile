@@ -21,20 +21,23 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+// Importamos la nueva pantalla y ViewModel de confirmación de cuenta
+import com.example.santabarbaramobile.ui.auth.Screens.ConfirmAccountScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ForgotPasswordScreen
 import com.example.santabarbaramobile.ui.auth.Screens.LoginScreen
 import com.example.santabarbaramobile.ui.auth.Screens.MainHubScreen
+import com.example.santabarbaramobile.ui.auth.Screens.ProfileScreen
 import com.example.santabarbaramobile.ui.auth.Screens.RegisterScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ShowDetailScreen
+import com.example.santabarbaramobile.ui.auth.ViewModels.ConfirmAccountViewModel
 import com.example.santabarbaramobile.ui.auth.ViewModels.ForgotPassViewModel
 import com.example.santabarbaramobile.ui.auth.ViewModels.LoginViewModel
+import com.example.santabarbaramobile.ui.auth.ViewModels.ProfileViewModel
 import com.example.santabarbaramobile.ui.auth.ViewModels.RegisterViewModel
 import com.example.santabarbaramobile.ui.auth.ViewModels.ShowDetailViewModel
 import com.example.santabarbaramobile.ui.navigation.AuthScreen
 import com.example.santabarbaramobile.ui.theme.SantaBarbaraMobileTheme
 import dagger.hilt.android.AndroidEntryPoint
-import com.example.santabarbaramobile.ui.auth.Screens.ProfileScreen
-import com.example.santabarbaramobile.ui.auth.ViewModels.ProfileViewModel
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -80,6 +83,27 @@ fun AppNavigation() {
                 viewModel = registerViewModel,
                 onNavigateBack = {
                     navController.popBackStack()
+                },
+                onNavigateToConfirm = { email ->
+                    navController.navigate("confirm_account/$email")
+                }
+            )
+        }
+
+        composable(
+            route = "confirm_account/{email}",
+            arguments = listOf(navArgument("email") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email") ?: ""
+            val confirmViewModel: ConfirmAccountViewModel = hiltViewModel()
+
+            ConfirmAccountScreen(
+                email = email,
+                viewModel = confirmViewModel,
+                onVerificationSuccess = {
+                    navController.navigate(AuthScreen.Login.route) {
+                        popUpTo(AuthScreen.Login.route) { inclusive = true }
+                    }
                 }
             )
         }
@@ -105,8 +129,19 @@ fun AppNavigation() {
             )
         }
 
-        composable("profile") {
+        composable(
+            route = "profile?userId={userId}",
+            arguments = listOf(navArgument("userId") {
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
+            })
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId")
             val profileViewModel: ProfileViewModel = hiltViewModel()
+            if (userId != null) {
+                profileViewModel.loadUserProfile(userId)
+            }
 
             ProfileScreen(
                 viewModel = profileViewModel,

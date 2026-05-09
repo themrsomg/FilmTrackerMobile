@@ -31,18 +31,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.santabarbaramobile.ui.auth.States.ResourceState
 import com.example.santabarbaramobile.ui.auth.ViewModels.RegisterViewModel
-import com.example.santabarbaramobile.ui.auth.ViewModels.Resource
-import com.example.santabarbaramobile.ui.components.PasswordInputField
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
-    viewModel: RegisterViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit
+    viewModel: RegisterViewModel,
+    onNavigateBack: () -> Unit,
+    onNavigateToConfirm: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -51,6 +51,13 @@ fun RegisterScreen(
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+
+    LaunchedEffect(uiState) {
+        if (uiState is ResourceState.Success) {
+            val registeredEmail = (uiState as ResourceState.Success<String>).data
+            onNavigateToConfirm(registeredEmail)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -68,72 +75,79 @@ fun RegisterScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
                 .padding(20.dp)
+                .verticalScroll(rememberScrollState())
         ) {
             Text(
-                text = "Unete a FilmTracker",
-                style = MaterialTheme.typography.headlineMedium,
+                text = "Únete a FilmTracker",
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Black
             )
-            Text(
-                text = "Guarda tu perfil, busca series y sincroniza tus listas con el backend.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 6.dp, bottom = 18.dp)
-            )
+
+            Spacer(modifier = Modifier.height(18.dp))
 
             Card(
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                modifier = Modifier.fillMaxWidth()
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(modifier = Modifier.padding(18.dp)) {
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
-                        label = { Text("Nombre") },
+                        label = { Text("Nombre completo") },
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        singleLine = true,
+                        enabled = uiState !is ResourceState.Loading
                     )
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     OutlinedTextField(
                         value = username,
                         onValueChange = { username = it },
-                        label = { Text("Username") },
+                        label = { Text("Nombre de usuario") },
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        singleLine = true,
+                        enabled = uiState !is ResourceState.Loading
                     )
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
-                        label = { Text("Email") },
+                        label = { Text("Correo electrónico") },
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        singleLine = true,
+                        enabled = uiState !is ResourceState.Loading
                     )
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                    PasswordInputField(
+                    OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        label = "Contrasena"
+                        label = { Text("Contraseña") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        enabled = uiState !is ResourceState.Loading
                     )
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                    PasswordInputField(
+                    OutlinedTextField(
                         value = confirmPassword,
                         onValueChange = { confirmPassword = it },
-                        label = "Confirmar contrasena"
+                        label = { Text("Confirmar contraseña") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        enabled = uiState !is ResourceState.Loading
                     )
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
                     Button(
                         onClick = {
@@ -145,12 +159,12 @@ fun RegisterScreen(
                                 confirmPass = confirmPassword
                             )
                         },
-                        enabled = uiState !is Resource.Loading,
+                        enabled = uiState !is ResourceState.Loading,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp)
                     ) {
-                        if (uiState is Resource.Loading) {
+                        if (uiState is ResourceState.Loading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.height(24.dp),
                                 color = MaterialTheme.colorScheme.onPrimary
@@ -160,22 +174,16 @@ fun RegisterScreen(
                         }
                     }
 
-                    if (uiState is Resource.Error) {
+                    if (uiState is ResourceState.Error) {
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = (uiState as Resource.Error).message,
+                            text = (uiState as ResourceState.Error).message,
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
                 }
             }
-        }
-    }
-
-    LaunchedEffect(uiState) {
-        if (uiState is Resource.Success) {
-            onNavigateBack()
         }
     }
 }

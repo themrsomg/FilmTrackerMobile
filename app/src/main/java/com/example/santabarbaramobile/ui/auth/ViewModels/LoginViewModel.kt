@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.santabarbaramobile.data.remote.auth.LoginRequest
 import com.example.santabarbaramobile.data.repository.AuthRepository
+import com.example.santabarbaramobile.ui.auth.States.ResourceState // <-- IMPORTACIÓN CORRECTA
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,28 +18,28 @@ class LoginViewModel @Inject constructor(
     private val repository: AuthRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<Resource<Unit>?>(null)
-    val uiState: StateFlow<Resource<Unit>?> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow<ResourceState<Unit>?>(null)
+    val uiState: StateFlow<ResourceState<Unit>?> = _uiState.asStateFlow()
 
     fun performLogin(email: String, pass: String) {
         val normalizedEmail = email.trim()
 
         if (normalizedEmail.isBlank() || pass.isBlank()) {
-            _uiState.value = Resource.Error("Email y contrasena son obligatorios")
+            _uiState.value = ResourceState.Error("Email y contrasena son obligatorios")
             return
         }
 
         if (!Patterns.EMAIL_ADDRESS.matcher(normalizedEmail).matches()) {
-            _uiState.value = Resource.Error("Escribe un correo valido")
+            _uiState.value = ResourceState.Error("Escribe un correo valido")
             return
         }
 
         viewModelScope.launch {
-            _uiState.value = Resource.Loading
+            _uiState.value = ResourceState.Loading
             repository.login(LoginRequest(normalizedEmail, pass))
-                .onSuccess { _uiState.value = Resource.Success(Unit) }
+                .onSuccess { _uiState.value = ResourceState.Success(Unit) }
                 .onFailure { error ->
-                    _uiState.value = Resource.Error(error.message ?: "No se pudo iniciar sesion")
+                    _uiState.value = ResourceState.Error(error.message ?: "No se pudo iniciar sesion")
                 }
         }
     }

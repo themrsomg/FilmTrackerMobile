@@ -35,8 +35,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.santabarbaramobile.ui.auth.States.ResourceState
 import com.example.santabarbaramobile.ui.auth.ViewModels.LoginViewModel
-import com.example.santabarbaramobile.ui.auth.ViewModels.Resource
 import com.example.santabarbaramobile.ui.components.PasswordInputField
 
 @Composable
@@ -126,12 +126,12 @@ fun LoginScreen(
 
                     Button(
                         onClick = { viewModel.performLogin(email, password) },
-                        enabled = uiState !is Resource.Loading,
+                        enabled = uiState !is ResourceState.Loading,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp)
                     ) {
-                        if (uiState is Resource.Loading) {
+                        if (uiState is ResourceState.Loading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(24.dp),
                                 color = MaterialTheme.colorScheme.onPrimary
@@ -149,10 +149,10 @@ fun LoginScreen(
                         Text("Crear cuenta nueva")
                     }
 
-                    if (uiState is Resource.Error) {
+                    if (uiState is ResourceState.Error) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = (uiState as Resource.Error).message,
+                            text = (uiState as ResourceState.Error).message,
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -163,7 +163,7 @@ fun LoginScreen(
     }
 
     LaunchedEffect(uiState) {
-        if (uiState is Resource.Success) {
+        if (uiState is ResourceState.Success) {
             onNavigateToMainHub()
         }
     }
