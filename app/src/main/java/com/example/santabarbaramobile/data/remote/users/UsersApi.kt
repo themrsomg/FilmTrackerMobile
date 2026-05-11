@@ -5,6 +5,7 @@ import com.example.santabarbaramobile.data.remote.auth.ApiResponse
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Path
 
 interface UsersApi {
 
@@ -12,4 +13,9 @@ interface UsersApi {
     suspend fun getProfile(
         @Header("Authorization") token: String
     ): Response<ApiResponse<UserResponse>>
+
+    @GET("api/users/{username}")
+    suspend fun getUserByUsername(
+        @Path("username") username: String
+    ): Response<com.example.santabarbaramobile.data.model.UserSearchResponse>
 }

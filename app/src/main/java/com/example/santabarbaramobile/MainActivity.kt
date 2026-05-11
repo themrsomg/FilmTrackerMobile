@@ -120,8 +120,11 @@ fun AppNavigation() {
 
         composable("main_hub") {
             MainHubScreen(
-                onNavigateToProfile = {
+                onNavigateToMyProfile = {
                     navController.navigate("profile")
+                },
+                onNavigateToOtherProfile = { selectedUserId, selectedUsername ->
+                    navController.navigate("profile?userId=$selectedUserId&username=$selectedUsername")
                 },
                 onNavigateToShowDetail = { showId ->
                     navController.navigate("show_detail/$showId")
@@ -130,17 +133,18 @@ fun AppNavigation() {
         }
 
         composable(
-            route = "profile?userId={userId}",
-            arguments = listOf(navArgument("userId") {
-                type = NavType.StringType
-                nullable = true
-                defaultValue = null
-            })
+            route = "profile?userId={userId}&username={username}",
+            arguments = listOf(
+                navArgument("userId") { type = NavType.StringType; nullable = true; defaultValue = null },
+                navArgument("username") { type = NavType.StringType; nullable = true; defaultValue = null }
+            )
         ) { backStackEntry ->
             val userId = backStackEntry.arguments?.getString("userId")
+            val username = backStackEntry.arguments?.getString("username")
             val profileViewModel: ProfileViewModel = hiltViewModel()
-            if (userId != null) {
-                profileViewModel.loadUserProfile(userId)
+
+            androidx.compose.runtime.LaunchedEffect(userId, username) {
+                profileViewModel.loadUserProfile(userId, username)
             }
 
             ProfileScreen(
@@ -151,9 +155,7 @@ fun AppNavigation() {
                 onLogout = {
                     profileViewModel.logout()
                     navController.navigate(AuthScreen.Login.route) {
-                        popUpTo(0) {
-                            inclusive = true
-                        }
+                        popUpTo(0) { inclusive = true }
                         launchSingleTop = true
                     }
                 }

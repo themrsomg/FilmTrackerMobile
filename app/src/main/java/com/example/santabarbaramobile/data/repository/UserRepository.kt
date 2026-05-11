@@ -31,4 +31,25 @@ class UserRepository @Inject constructor(
             Result.failure(e)
         }
     }
+
+    suspend fun searchUserByUsername(username: String): Result<com.example.santabarbaramobile.data.model.UserDto> = withContext(Dispatchers.IO) {
+        try {
+            val formattedUsername = username.trim().replace(" ", "_")
+
+            val response = usersApi.getUserByUsername(formattedUsername)
+
+            if (response.isSuccessful) {
+                val body = response.body()
+                if (body != null && body.data != null) {
+                    Result.success(body.data)
+                } else {
+                    Result.failure(Exception("Datos del usuario vacíos"))
+                }
+            } else {
+                Result.failure(Exception("Usuario no encontrado"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

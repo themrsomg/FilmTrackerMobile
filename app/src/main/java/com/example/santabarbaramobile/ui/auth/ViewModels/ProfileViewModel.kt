@@ -28,15 +28,13 @@ class ProfileViewModel @Inject constructor(
     var uiState by mutableStateOf(ProfileState())
         private set
 
-    init {
-        loadUserProfile(userId = null)
-    }
-
-    fun loadUserProfile(userId: String? = null) {
+    fun loadUserProfile(userId: String? = null, username: String? = null) {
         viewModelScope.launch {
+            val isOwnProfile = (userId == null)
+
             uiState = uiState.copy(
                 isLoading = true,
-                isOwnProfile = (userId == null),
+                isOwnProfile = isOwnProfile,
                 error = null
             )
 
@@ -45,17 +43,50 @@ class ProfileViewModel @Inject constructor(
             if (token != null) {
                 val bearerToken = "Bearer $token"
 
-                val profileDeferred = async { userRepository.getUserProfile(bearerToken) }
-                val watchlistDeferred = async { libraryRepository.getWatchlist(userId) }
-                val favoritesDeferred = if (userId == null) {
-                    async { libraryRepository.getMyFavorites() }
+                val watchlistDeferred = if (isOwnProfile) {
+                    async { libraryRepository.getMyWatchlist() }
                 } else null
 
-                val profileResult = profileDeferred.await()
-                val watchlistResult = watchlistDeferred.await()
-                val favoritesResult = favoritesDeferred?.await()
-                val rawWatchlist = watchlistResult.getOrDefault(emptyList())
-                val rawFavorites = favoritesResult?.getOrDefault(emptyList()) ?: emptyList()
+                val favoritesDeferred = if (isOwnProfile) {
+                    async { libraryRepository.getMyFavorites() }
+                } else {
+                    async { libraryRepository.getUserFavorites(userId!!) }
+                }
+
+                var fetchedName = ""
+                var fetchedUsername = ""
+                var fetchedEmail = ""
+                var fetchedProfileImage: String? = null
+                var fetchedIsVerified = false
+                var profileError: String? = null
+
+                if (isOwnProfile) {
+                    userRepository.getUserProfile(bearerToken)
+                        .onSuccess {
+                            fetchedName = it.name.orEmpty()
+                            fetchedUsername = it.username
+                            fetchedEmail = it.email ?: ""
+                            fetchedProfileImage = it.profileImage
+                            fetchedIsVerified = it.isEmailVerified
+                        }
+                        .onFailure { profileError = it.message }
+                } else {
+                    userRepository.searchUserByUsername(username ?: "")
+                        .onSuccess {
+                            fetchedName = it.name.orEmpty()
+                            fetchedUsername = it.username
+                            fetchedEmail = it.email ?: ""
+                            fetchedProfileImage = it.profileImage
+                            fetchedIsVerified = false
+                        }
+                        .onFailure { profileError = it.message }
+                }
+
+                val watchlistResult = watchlistDeferred?.await()
+                val favoritesResult = favoritesDeferred.await()
+
+                val rawWatchlist = watchlistResult?.getOrDefault(emptyList()) ?: emptyList()
+                val rawFavorites = favoritesResult.getOrDefault(emptyList())
 
                 val populatedWatchlist = rawWatchlist.map { item ->
                     async { hydrateItem(item) }
@@ -65,20 +96,20 @@ class ProfileViewModel @Inject constructor(
                     async { hydrateItem(item) }
                 }.awaitAll()
 
-                profileResult.onSuccess { userResponse ->
+                if (profileError == null) {
                     uiState = uiState.copy(
-                        name = userResponse.name.orEmpty(),
-                        username = userResponse.username,
-                        email = userResponse.email,
-                        profileImage = userResponse.profileImage,
-                        isEmailVerified = userResponse.isEmailVerified,
+                        name = fetchedName,
+                        username = fetchedUsername,
+                        email = fetchedEmail,
+                        profileImage = fetchedProfileImage,
+                        isEmailVerified = fetchedIsVerified,
                         watchlist = populatedWatchlist,
                         favorites = populatedFavorites,
                         isLoading = false
                     )
-                }.onFailure { exception ->
+                } else {
                     uiState = uiState.copy(
-                        error = exception.message ?: "Error desconocido al cargar perfil",
+                        error = profileError,
                         isLoading = false
                     )
                 }

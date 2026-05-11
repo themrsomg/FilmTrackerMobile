@@ -64,12 +64,6 @@ interface UserLibraryApi {
         @Path("tvmazeId") tvmazeId: String
     ): Response<CheckResponse>
 
-    @GET("api/library/watchlist/{userId}")
-    suspend fun getUserWatchlist(
-        @Header("Authorization") token: String,
-        @Path("userId") userId: String
-    ): Response<LibraryListResponse>
-
     @GET("api/watchlist")
     suspend fun getMyWatchlist(
         @Header("Authorization") token: String
@@ -78,5 +72,11 @@ interface UserLibraryApi {
     @GET("api/favorites")
     suspend fun getMyFavorites(
         @Header("Authorization") token: String
+    ): Response<LibraryListResponse>
+
+    @GET("api/favorites/user/{authId}")
+    suspend fun getUserFavorites(
+        @Header("Authorization") token: String,
+        @Path("authId") authId: String
     ): Response<LibraryListResponse>
 }

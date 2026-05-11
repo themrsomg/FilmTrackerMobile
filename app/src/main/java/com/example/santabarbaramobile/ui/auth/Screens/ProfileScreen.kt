@@ -132,40 +132,42 @@ private fun ProfileContent(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-        ) {
-            Column(modifier = Modifier.padding(18.dp)) {
-                Text(
-                    text = "Cuenta",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                ProfileRow(label = "Email", value = state.email.ifBlank { "Sin correo registrado" })
-                ProfileRow(
-                    label = "Estado",
-                    value = if (state.isEmailVerified) "Email verificado" else "Email pendiente"
-                )
+        if (state.isOwnProfile) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Text(
+                        text = "Cuenta",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    ProfileRow(label = "Email", value = state.email.ifBlank { "Sin correo registrado" })
+                    ProfileRow(
+                        label = "Estado",
+                        value = if (state.isEmailVerified) "Email verificado" else "Email pendiente"
+                    )
+                }
             }
+            Spacer(modifier = Modifier.height(24.dp))
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
 
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.Start
         ) {
-            CarouselSection(title = "Watchlist", items = state.watchlist)
+            if (state.isOwnProfile) {
+                CarouselSection(title = "Mi Watchlist", items = state.watchlist)
+                Spacer(modifier = Modifier.height(24.dp))
+                CarouselSection(title = "Mis Favoritos", items = state.favorites)
+            } else {
+                CarouselSection(title = "Favoritos de @${state.username}", items = state.favorites)
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
-
-            if (state.isOwnProfile) {
-                CarouselSection(title = "Mis Favoritos", items = state.favorites)
-                Spacer(modifier = Modifier.height(24.dp))
-            }
         }
 
         if (!state.error.isNullOrEmpty()) {

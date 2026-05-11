@@ -27,19 +27,29 @@ class LibraryRepository @Inject constructor(
         }
     }
 
-    suspend fun getWatchlist(userId: String?): Result<List<LibraryItemDto>> = withContext(Dispatchers.IO) {
+    suspend fun getMyWatchlist(): Result<List<LibraryItemDto>> = withContext(Dispatchers.IO) {
         try {
             val token = "Bearer ${tokenManager.getToken()}"
-            val response = if (userId != null) {
-                api.getUserWatchlist(token, userId)
-            } else {
-                api.getMyWatchlist(token)
-            }
+            val response = api.getMyWatchlist(token)
 
             if (response.isSuccessful) {
                 Result.success(response.body()?.data ?: emptyList())
             } else {
                 Result.failure(Exception("Error al cargar watchlist"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getUserFavorites(userId: String): Result<List<LibraryItemDto>> = withContext(Dispatchers.IO) {
+        try {
+            val token = "Bearer ${tokenManager.getToken()}"
+            val response = api.getUserFavorites(token, userId)
+            if (response.isSuccessful) {
+                Result.success(response.body()?.data ?: emptyList())
+            } else {
+                Result.failure(Exception("Error al obtener favoritos del usuario"))
             }
         } catch (e: Exception) {
             Result.failure(e)

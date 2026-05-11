@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -39,11 +40,13 @@ import com.example.santabarbaramobile.ui.auth.ViewModels.MainHubViewModel
 @Composable
 fun MainHubScreen(
     viewModel: MainHubViewModel = hiltViewModel(),
-    onNavigateToProfile: () -> Unit,
+    onNavigateToMyProfile: () -> Unit,
+    onNavigateToOtherProfile: (String, String) -> Unit,
     onNavigateToShowDetail: (String) -> Unit
 ) {
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
+    val searchUserResult by viewModel.searchUserResult.collectAsStateWithLifecycle()
     val isSearchActive by viewModel.isSearchActive.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -53,10 +56,10 @@ fun MainHubScreen(
                 CenterAlignedTopAppBar(
                     title = { Text("FilmTracker", fontWeight = FontWeight.Bold) },
                     actions = {
-                        IconButton(onClick = onNavigateToProfile) {
+                        IconButton(onClick = onNavigateToMyProfile) {
                             Icon(
                                 imageVector = Icons.Default.AccountCircle,
-                                contentDescription = "Ir al Perfil",
+                                contentDescription = "Ir a mi Perfil",
                                 modifier = Modifier.size(28.dp),
                                 tint = MaterialTheme.colorScheme.primary
                             )
@@ -73,7 +76,7 @@ fun MainHubScreen(
                     onSearch = { viewModel.setSearchActive(false) },
                     active = isSearchActive,
                     onActiveChange = { viewModel.setSearchActive(it) },
-                    placeholder = { Text("Buscar series...") },
+                    placeholder = { Text("Buscar series o usuarios...") },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
                     trailingIcon = {
                         if (isSearchActive) {
@@ -89,15 +92,44 @@ fun MainHubScreen(
                 ) {
                     if (searchQuery.trim().lowercase() == "jaire") {
                         EasterEggContent()
-                    } else if (searchResults.isNotEmpty()) {
+                    } else if (searchResults.isNotEmpty() || searchUserResult != null) {
                         LazyColumn(modifier = Modifier.fillMaxSize()) {
+
+                            if (searchUserResult != null) {
+                                item {
+                                    val user = searchUserResult!!
+                                    ListItem(
+                                        headlineContent = { Text(user.name ?: "Usuario", fontWeight = FontWeight.Bold) },
+                                        supportingContent = { Text("@${user.username}", color = MaterialTheme.colorScheme.primary) },
+                                        leadingContent = {
+                                            if (user.profileImage.isNullOrBlank()) {
+                                                Icon(Icons.Filled.AccountCircle, contentDescription = null, modifier = Modifier.size(56.dp), tint = MaterialTheme.colorScheme.primary)
+                                            } else {
+                                                AsyncImage(
+                                                    model = user.profileImage,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(56.dp).clip(CircleShape),
+                                                    contentScale = ContentScale.Crop
+                                                )
+                                            }
+                                        },
+                                        modifier = Modifier.clickable {
+                                            viewModel.setSearchActive(false)
+                                            val targetId = user.authId ?: user.id ?: ""
+                                            onNavigateToOtherProfile(targetId, user.username)
+                                        }
+                                    )
+                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 2.dp)
+                                }
+                            }
+
                             items(searchResults, key = { it.tvmazeId }) { show ->
                                 ListItem(
                                     headlineContent = { Text(show.name, fontWeight = FontWeight.Bold) },
                                     supportingContent = { Text(show.genres.joinToString(", "), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                                     leadingContent = {
                                         AsyncImage(
-                                            model = show.image?.medium,
+                                            model = show.image?.medium ?: show.image?.original,
                                             contentDescription = null,
                                             modifier = Modifier.size(56.dp).clip(RoundedCornerShape(8.dp)),
                                             contentScale = ContentScale.Crop
@@ -145,7 +177,6 @@ fun MainHubScreen(
         }
     }
 }
-
 
 @Composable
 private fun MainContent(
