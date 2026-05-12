@@ -12,5 +12,7 @@ data class ProfileState(
     val error: String? = null,
     val isOwnProfile: Boolean = true,
     val watchlist: List<LibraryItemDto> = emptyList(),
-    val favorites: List<LibraryItemDto> = emptyList()
+    val favorites: List<LibraryItemDto> = emptyList(),
+    val targetAuthId: String = "",
+    val friendshipStatus: String = "NONE"
 )

@@ -20,10 +20,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.People // <-- IMPORTACIÓN NUEVA
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -53,6 +55,7 @@ import com.example.santabarbaramobile.ui.auth.ViewModels.ProfileViewModel
 fun ProfileScreen(
     viewModel: ProfileViewModel,
     onNavigateBack: () -> Unit,
+    onNavigateToFriendsManager: () -> Unit,
     onLogout: () -> Unit
 ) {
     val state = viewModel.uiState
@@ -80,7 +83,13 @@ fun ProfileScreen(
         ) {
             when {
                 state.isLoading -> CircularProgressIndicator()
-                else -> ProfileContent(state = state, onLogout = onLogout)
+                else -> ProfileContent(
+                    state = state,
+                    onLogout = onLogout,
+                    onNavigateToFriendsManager = onNavigateToFriendsManager,
+                    onAddFriend = { viewModel.sendFriendRequest() },
+                    onRemoveFriend = { viewModel.removeFriend() }
+                )
             }
         }
     }
@@ -89,7 +98,10 @@ fun ProfileScreen(
 @Composable
 private fun ProfileContent(
     state: ProfileState,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onNavigateToFriendsManager: () -> Unit,
+    onAddFriend: () -> Unit,
+    onRemoveFriend: () -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -129,6 +141,39 @@ private fun ProfileContent(
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.primary
         )
+
+        if (!state.isOwnProfile && state.targetAuthId.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(16.dp))
+            when (state.friendshipStatus) {
+                "LOADING" -> CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                "FRIENDS" -> OutlinedButton(onClick = onRemoveFriend) {
+                    Text("Eliminar amigo")
+                }
+                "PENDING_OUTGOING" -> OutlinedButton(onClick = { }, enabled = false) {
+                    Text("Solicitud enviada")
+                }
+                "PENDING_INCOMING" -> Button(onClick = { /* Solo informativo */ }, enabled = false) {
+                    Text("Responder solicitud")
+                }
+                else -> Button(
+                    onClick = onAddFriend,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text("Agregar amigo")
+                }
+            }
+        } else if (state.isOwnProfile) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = onNavigateToFriendsManager,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                modifier = Modifier.fillMaxWidth(0.7f)
+            ) {
+                Icon(Icons.Default.People, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Gestor de Amistades")
+            }
+        }
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -185,7 +230,7 @@ private fun ProfileContent(
                 onClick = onLogout,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Icon(Icons.Default.Logout, contentDescription = null)
+                Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null)
                 Spacer(modifier = Modifier.size(8.dp))
                 Text("Cerrar sesion")
             }

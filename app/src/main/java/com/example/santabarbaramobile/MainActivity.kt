@@ -152,12 +152,26 @@ fun AppNavigation() {
                 onNavigateBack = {
                     navController.popBackStack()
                 },
+                onNavigateToFriendsManager = {
+                    navController.navigate("friends_manager")
+                },
                 onLogout = {
                     profileViewModel.logout()
                     navController.navigate(AuthScreen.Login.route) {
                         popUpTo(0) { inclusive = true }
                         launchSingleTop = true
                     }
+                }
+            )
+        }
+
+        composable("friends_manager") {
+            val friendsViewModel: com.example.santabarbaramobile.ui.auth.ViewModels.FriendsManagerViewModel = hiltViewModel()
+            com.example.santabarbaramobile.ui.auth.Screens.FriendsManagerScreen(
+                viewModel = friendsViewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToProfile = { userId, username ->
+                    navController.navigate("profile?userId=$userId&username=$username")
                 }
             )
         }

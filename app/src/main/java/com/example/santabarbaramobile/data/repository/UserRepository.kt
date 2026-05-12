@@ -52,4 +52,17 @@ class UserRepository @Inject constructor(
             Result.failure(e)
         }
     }
+
+    suspend fun getUserById(authId: String): Result<com.example.santabarbaramobile.data.model.UserDto> = withContext(Dispatchers.IO) {
+        try {
+            val response = usersApi.getUserById(authId)
+            if (response.isSuccessful && response.body()?.data != null) {
+                Result.success(response.body()!!.data)
+            } else {
+                Result.failure(Exception("Usuario no encontrado"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

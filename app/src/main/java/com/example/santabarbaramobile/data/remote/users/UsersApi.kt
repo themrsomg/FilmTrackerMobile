@@ -18,4 +18,9 @@ interface UsersApi {
     suspend fun getUserByUsername(
         @Path("username") username: String
     ): Response<com.example.santabarbaramobile.data.model.UserSearchResponse>
+
+    @GET("api/users/id/{authId}")
+    suspend fun getUserById(
+        @Path("authId") authId: String
+    ): Response<com.example.santabarbaramobile.data.model.UserSearchResponse>
 }

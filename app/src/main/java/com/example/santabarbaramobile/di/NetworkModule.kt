@@ -5,6 +5,7 @@ import com.example.santabarbaramobile.data.remote.SantaBarbaraApi
 import com.example.santabarbaramobile.data.remote.auth.AuthApi
 import com.example.santabarbaramobile.data.remote.library.UserLibraryApi
 import com.example.santabarbaramobile.data.remote.users.UsersApi
+import com.example.santabarbaramobile.data.remote.friends.FriendsApi // <-- NUEVA IMPORTACIÓN
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -33,6 +34,10 @@ annotation class UsersRetrofit
 @Retention(AnnotationRetention.BINARY)
 annotation class LibraryRetrofit
 
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class FriendsRetrofit
+
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
@@ -41,6 +46,7 @@ object NetworkModule {
     private const val USERS_BASE_URL = "http://10.0.2.2:3002/"
     private const val AUTH_BASE_URL = "http://10.0.2.2:3003/"
     private const val LIBRARY_BASE_URL = "http://10.0.2.2:3004/"
+    private const val FRIENDS_BASE_URL = "http://10.0.2.2:3006/"
 
     @Provides
     @Singleton
@@ -110,6 +116,17 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @FriendsRetrofit
+    fun provideFriendsRetrofit(okHttpClient: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(FRIENDS_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    @Provides
+    @Singleton
     fun provideSantaBarbaraApi(@ShowsRetrofit retrofit: Retrofit): SantaBarbaraApi {
         return retrofit.create(SantaBarbaraApi::class.java)
     }
@@ -130,5 +147,11 @@ object NetworkModule {
     @Singleton
     fun provideUserLibraryApi(@LibraryRetrofit retrofit: Retrofit): UserLibraryApi {
         return retrofit.create(UserLibraryApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFriendsApi(@FriendsRetrofit retrofit: Retrofit): FriendsApi {
+        return retrofit.create(FriendsApi::class.java)
     }
 }
