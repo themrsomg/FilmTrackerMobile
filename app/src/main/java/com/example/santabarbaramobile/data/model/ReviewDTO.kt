@@ -12,6 +12,7 @@ data class ReviewDto(
     val rating: Int,
     val title: String,
     val content: String,
+    @SerializedName("imageUrl", alternate = ["image", "image_url", "profileImage"])
     val imageUrl: String?,
     @SerializedName("likesCount", alternate = ["likes_count"])
     val likesCount: Int = 0,

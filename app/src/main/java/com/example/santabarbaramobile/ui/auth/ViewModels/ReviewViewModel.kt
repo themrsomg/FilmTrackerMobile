@@ -94,9 +94,26 @@ class ReviewViewModel @Inject constructor(
     }
 
     fun toggleLike(reviewId: String, isLiked: Boolean) {
+        reviews = reviews.map { review ->
+            if (review.id == reviewId) {
+                review.copy(
+                    likedByMe = !isLiked,
+                    likesCount = review.likesCount + if (isLiked) -1 else 1
+                )
+            } else review
+        }
         viewModelScope.launch {
             repository.toggleLike(reviewId, isLiked)
-                .onSuccess { /* Actualizar contador localmente o recargar */ }
+                .onFailure {
+                    reviews = reviews.map { review ->
+                        if (review.id == reviewId) {
+                            review.copy(
+                                likedByMe = isLiked,
+                                likesCount = review.likesCount + if (isLiked) 1 else -1
+                            )
+                        } else review
+                    }
+                }
         }
     }
 

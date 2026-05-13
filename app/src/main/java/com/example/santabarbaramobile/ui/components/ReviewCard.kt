@@ -77,8 +77,9 @@ fun ReviewCard(
             Text(text = review.content, style = MaterialTheme.typography.bodyMedium)
 
             if (!review.imageUrl.isNullOrBlank()) {
+                val fixedUrl = review.imageUrl.replace("localhost", "10.0.2.2")
                 AsyncImage(
-                    model = review.imageUrl,
+                    model = fixedUrl,
                     contentDescription = "Imagen de la reseña",
                     modifier = Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(8.dp)).padding(top = 8.dp),
                     contentScale = ContentScale.Crop

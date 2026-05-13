@@ -24,11 +24,11 @@ class CommentsRepository @Inject constructor(
         } catch (e: Exception) { Result.failure(e) }
     }
 
-    suspend fun createComment(reviewId: String, content: String): Result<CommentDto> = withContext(Dispatchers.IO) {
+    suspend fun createComment(reviewId: String, content: String, imagePart: okhttp3.MultipartBody.Part?): Result<CommentDto> = withContext(Dispatchers.IO) {
         try {
             val token = "Bearer ${tokenManager.getToken()}"
             val rbContent = content.toRequestBody("text/plain".toMediaTypeOrNull())
-            val response = api.createComment(token, reviewId, rbContent, null)
+            val response = api.createComment(token, reviewId, rbContent, imagePart)
             if (response.isSuccessful && response.body() != null) Result.success(response.body()!!.comment)
             else Result.failure(Exception("Error al comentar"))
         } catch (e: Exception) { Result.failure(e) }
