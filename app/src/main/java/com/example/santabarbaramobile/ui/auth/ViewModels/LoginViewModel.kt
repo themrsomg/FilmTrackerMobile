@@ -5,7 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.santabarbaramobile.data.remote.auth.LoginRequest
 import com.example.santabarbaramobile.data.repository.AuthRepository
-import com.example.santabarbaramobile.ui.auth.States.ResourceState // <-- IMPORTACIÓN CORRECTA
+import com.example.santabarbaramobile.data.security.TokenManager // <-- IMPORTACIÓN NECESARIA
+import com.example.santabarbaramobile.ui.auth.States.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val repository: AuthRepository
+    private val repository: AuthRepository,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ResourceState<Unit>?>(null)
@@ -37,7 +39,11 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = ResourceState.Loading
             repository.login(LoginRequest(normalizedEmail, pass))
-                .onSuccess { _uiState.value = ResourceState.Success(Unit) }
+                .onSuccess { response ->
+                    tokenManager.saveToken(response.token)
+
+                    _uiState.value = ResourceState.Success(Unit)
+                }
                 .onFailure { error ->
                     _uiState.value = ResourceState.Error(error.message ?: "No se pudo iniciar sesion")
                 }

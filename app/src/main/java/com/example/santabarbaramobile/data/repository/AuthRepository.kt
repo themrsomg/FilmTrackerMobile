@@ -11,6 +11,8 @@ import com.example.santabarbaramobile.data.remote.users.UsersApi
 import com.example.santabarbaramobile.data.security.TokenManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.ResponseBody
+import org.json.JSONObject
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
@@ -26,21 +28,14 @@ class AuthRepository @Inject constructor(
     suspend fun login(request: LoginRequest): Result<LoginResponse> = withContext(Dispatchers.IO) {
         try {
             val response = authApi.login(request)
-            val body = response.body()?.data
-            val token = body?.token
-
-            if (response.isSuccessful && body != null && !token.isNullOrBlank()) {
-                tokenManager.saveToken(token)
-                Result.success(body)
+            if (response.isSuccessful && response.body()?.data != null) {
+                Result.success(response.body()!!.data!!)
             } else {
-                Result.failure(Exception("Credenciales invalidas. Verifica tu correo y contrasena."))
+                val errorMessage = extractErrorMessage(response.errorBody())
+                Result.failure(Exception(errorMessage))
             }
-        } catch (e: HttpException) {
-            Result.failure(Exception("Error de servidor: ${e.message()}"))
-        } catch (e: IOException) {
-            Result.failure(Exception("Sin conexion con el servidor. Verifica que Docker este corriendo."))
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception("Error de conexión al servidor"))
         }
     }
 
@@ -116,6 +111,16 @@ class AuthRepository @Inject constructor(
             Result.failure(Exception("Sin conexión con el servidor."))
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    private fun extractErrorMessage(errorBody: ResponseBody?): String {
+        return try {
+            val errorString = errorBody?.string()
+            val jsonObject = JSONObject(errorString ?: "")
+            jsonObject.getString("message")
+        } catch (e: Exception) {
+            "Credenciales incorrectas o problema de servidor."
         }
     }
 }
