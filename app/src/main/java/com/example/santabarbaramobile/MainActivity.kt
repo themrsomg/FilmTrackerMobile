@@ -28,12 +28,14 @@ import com.example.santabarbaramobile.ui.auth.Screens.LoginScreen
 import com.example.santabarbaramobile.ui.auth.Screens.MainHubScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ProfileScreen
 import com.example.santabarbaramobile.ui.auth.Screens.RegisterScreen
+import com.example.santabarbaramobile.ui.auth.Screens.ReviewDetailScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ShowDetailScreen
 import com.example.santabarbaramobile.ui.auth.ViewModels.ConfirmAccountViewModel
 import com.example.santabarbaramobile.ui.auth.ViewModels.ForgotPassViewModel
 import com.example.santabarbaramobile.ui.auth.ViewModels.LoginViewModel
 import com.example.santabarbaramobile.ui.auth.ViewModels.ProfileViewModel
 import com.example.santabarbaramobile.ui.auth.ViewModels.RegisterViewModel
+import com.example.santabarbaramobile.ui.auth.ViewModels.ReviewDetailViewModel
 import com.example.santabarbaramobile.ui.auth.ViewModels.ShowDetailViewModel
 import com.example.santabarbaramobile.ui.navigation.AuthScreen
 import com.example.santabarbaramobile.ui.theme.SantaBarbaraMobileTheme
@@ -191,6 +193,9 @@ fun AppNavigation() {
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToShowDetail = { newShowId ->
                         navController.navigate("show_detail/$newShowId")
+                    },
+                    onNavigateToReviewDetail = { reviewId ->
+                        navController.navigate("review_detail/$reviewId")
                     }
                 )
             } else {
@@ -210,6 +215,19 @@ fun AppNavigation() {
                     }
                 }
             }
+        }
+
+        composable(
+            route = "review_detail/{reviewId}",
+            arguments = listOf(navArgument("reviewId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val reviewId = backStackEntry.arguments?.getString("reviewId") ?: return@composable
+            val reviewDetailViewModel: ReviewDetailViewModel = hiltViewModel()
+            ReviewDetailScreen(
+                reviewId = reviewId,
+                viewModel = reviewDetailViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
     }
 }

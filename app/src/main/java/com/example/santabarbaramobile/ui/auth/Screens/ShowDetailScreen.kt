@@ -22,36 +22,50 @@ import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.core.text.HtmlCompat
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.text.HtmlCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.santabarbaramobile.data.model.CastMember
 import com.example.santabarbaramobile.data.model.Episode
+import com.example.santabarbaramobile.data.model.ReviewDto
 import com.example.santabarbaramobile.data.model.Season
 import com.example.santabarbaramobile.data.model.Show
+import com.example.santabarbaramobile.ui.auth.ViewModels.ReviewViewModel
 import com.example.santabarbaramobile.ui.auth.ViewModels.ShowDetailViewModel
+import com.example.santabarbaramobile.ui.components.ReviewCard
+import com.example.santabarbaramobile.ui.components.ReviewDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShowDetailScreen(
     showId: String,
     viewModel: ShowDetailViewModel = hiltViewModel(),
+    reviewViewModel: ReviewViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
-    onNavigateToShowDetail: (String) -> Unit
+    onNavigateToShowDetail: (String) -> Unit,
+    onNavigateToReviewDetail: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
-    LaunchedEffect(showId) { viewModel.fetchFullShowDetails(showId) }
+    var showReviewDialog by remember { mutableStateOf(false) }
+    var reviewToEdit by remember { mutableStateOf<ReviewDto?>(null) }
+
+    LaunchedEffect(showId) {
+        viewModel.fetchFullShowDetails(showId)
+        reviewViewModel.fetchReviews(showId.toInt())
+    }
 
     Scaffold(
         topBar = {
@@ -121,37 +135,87 @@ fun ShowDetailScreen(
 
                     if (uiState.similarShows.isNotEmpty()) {
                         item {
-                            Text(
-                                "Series Similares", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(16.dp)
-                            )
+                            Text("Series Similares", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(16.dp))
                             SimilarShowsCarousel(uiState.similarShows, onNavigateToShowDetail)
                         }
                     }
 
                     if (uiState.cast.isNotEmpty()) {
                         item {
-                            Text(
-                                "Elenco Principal", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(16.dp)
-                            )
+                            Text("Elenco Principal", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(16.dp))
                             CastCarousel(uiState.cast)
                         }
                     }
 
                     if (uiState.seasonsWithEpisodes.isNotEmpty()) {
                         item {
-                            Text(
-                                "Temporadas", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(16.dp)
-                            )
+                            Text("Temporadas", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(16.dp))
                         }
                         items(uiState.seasonsWithEpisodes.toList()) { (season, episodes) ->
                             ExpandableSeasonCard(season = season, episodes = episodes)
                         }
                     }
+
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("Reseñas de la Comunidad", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                            Button(onClick = {
+                                reviewToEdit = null
+                                showReviewDialog = true
+                            }) {
+                                Text("Opinar")
+                            }
+                        }
+                    }
+
+                    if (reviewViewModel.isLoading) {
+                        item { Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() } }
+                    } else if (reviewViewModel.reviews.isEmpty()) {
+                        item { Text("No hay reseñas aún. ¡Sé el primero!", modifier = Modifier.padding(horizontal = 16.dp), color = Color.Gray) }
+                    } else {
+                        items(reviewViewModel.reviews) { review ->
+                            val isOwner = reviewViewModel.currentUserId == review.authId
+
+                            ReviewCard(
+                                review = review,
+                                isOwner = isOwner,
+                                onEditClick = {
+                                    reviewToEdit = it
+                                    showReviewDialog = true
+                                },
+                                onDeleteClick = { id ->
+                                    reviewViewModel.deleteReview(id, showId.toInt())
+                                },
+                                onLikeClick = { id, liked ->
+                                    reviewViewModel.toggleLike(id, liked)
+                                },
+                                onCardClick = {
+                                    onNavigateToReviewDetail(review.id)
+                                }
+                            )
+                        }
+                    }
                 }
             }
+        }
+
+        if (showReviewDialog) {
+            ReviewDialog(
+                initialReview = reviewToEdit,
+                onDismiss = { showReviewDialog = false },
+                onSubmit = { rating, title, content, uri ->
+                    if (reviewToEdit == null) {
+                        reviewViewModel.postReview(context, showId.toInt(), rating, title, content, uri)
+                    } else {
+                        reviewViewModel.updateReview(reviewToEdit!!.id, showId.toInt(), rating, title, content)
+                    }
+                    showReviewDialog = false
+                }
+            )
         }
     }
 }

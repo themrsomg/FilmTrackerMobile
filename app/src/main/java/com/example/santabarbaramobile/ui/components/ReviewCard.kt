@@ -1,0 +1,100 @@
+package com.example.santabarbaramobile.ui.components
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import com.example.santabarbaramobile.data.model.ReviewDto
+import java.time.Duration
+import java.time.Instant
+
+@Composable
+fun ReviewCard(
+    review: ReviewDto,
+    isOwner: Boolean,
+    onEditClick: (ReviewDto) -> Unit,
+    onDeleteClick: (String) -> Unit,
+    onLikeClick: (String, Boolean) -> Unit,
+    onCardClick: () -> Unit
+) {
+    val showEditButton = isOwner && canEditReview(review.createdAt)
+
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).clickable { onCardClick() },
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = review.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+
+                if (isOwner) {
+                    Row {
+                        if (showEditButton) {
+                            IconButton(onClick = { onEditClick(review) }) {
+                                Icon(Icons.Default.Edit, contentDescription = "Editar", tint = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+                        IconButton(onClick = { onDeleteClick(review.id) }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Borrar", tint = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                }
+            }
+
+            Text(text = "⭐ ".repeat(review.rating), color = Color(0xFFFFCC00))
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(text = review.content, style = MaterialTheme.typography.bodyMedium)
+
+            if (!review.imageUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model = review.imageUrl,
+                    contentDescription = "Imagen de la reseña",
+                    modifier = Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(8.dp)).padding(top = 8.dp),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            Row(modifier = Modifier.padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { onLikeClick(review.id, review.likedByMe) }) {
+                    Icon(
+                        imageVector = if (review.likedByMe) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                        contentDescription = "Like",
+                        tint = if (review.likedByMe) Color.Red else Color.Gray
+                    )
+                }
+                Text(text = "${review.likesCount} likes")
+            }
+        }
+    }
+}

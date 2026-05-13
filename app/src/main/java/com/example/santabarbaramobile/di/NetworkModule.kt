@@ -5,7 +5,9 @@ import com.example.santabarbaramobile.data.remote.SantaBarbaraApi
 import com.example.santabarbaramobile.data.remote.auth.AuthApi
 import com.example.santabarbaramobile.data.remote.library.UserLibraryApi
 import com.example.santabarbaramobile.data.remote.users.UsersApi
-import com.example.santabarbaramobile.data.remote.friends.FriendsApi // <-- NUEVA IMPORTACIÓN
+import com.example.santabarbaramobile.data.remote.friends.FriendsApi
+import com.example.santabarbaramobile.data.remote.reviews.CommentsApi
+import com.example.santabarbaramobile.data.remote.reviews.ReviewsApi // <-- NUEVA IMPORTACIÓN
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -38,6 +40,10 @@ annotation class LibraryRetrofit
 @Retention(AnnotationRetention.BINARY)
 annotation class FriendsRetrofit
 
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class ReviewsRetrofit
+
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
@@ -46,6 +52,7 @@ object NetworkModule {
     private const val USERS_BASE_URL = "http://10.0.2.2:3002/"
     private const val AUTH_BASE_URL = "http://10.0.2.2:3003/"
     private const val LIBRARY_BASE_URL = "http://10.0.2.2:3004/"
+    private const val REVIEWS_BASE_URL = "http://10.0.2.2:3005/"
     private const val FRIENDS_BASE_URL = "http://10.0.2.2:3006/"
 
     @Provides
@@ -116,6 +123,17 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @ReviewsRetrofit
+    fun provideReviewsRetrofit(okHttpClient: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(REVIEWS_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    @Provides
+    @Singleton
     @FriendsRetrofit
     fun provideFriendsRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
@@ -151,7 +169,19 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    fun provideReviewsApi(@ReviewsRetrofit retrofit: Retrofit): ReviewsApi {
+        return retrofit.create(ReviewsApi::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun provideFriendsApi(@FriendsRetrofit retrofit: Retrofit): FriendsApi {
         return retrofit.create(FriendsApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCommentsApi(@ReviewsRetrofit retrofit: Retrofit): CommentsApi {
+        return retrofit.create(CommentsApi::class.java)
     }
 }
