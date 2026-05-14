@@ -12,11 +12,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,14 +37,17 @@ import com.example.santabarbaramobile.R
 import com.example.santabarbaramobile.data.model.Show
 import com.example.santabarbaramobile.ui.auth.States.HomeUiState
 import com.example.santabarbaramobile.ui.auth.ViewModels.MainHubViewModel
+import com.example.santabarbaramobile.ui.auth.ViewModels.NotificationsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainHubScreen(
     viewModel: MainHubViewModel = hiltViewModel(),
+    notificationsViewModel: NotificationsViewModel = hiltViewModel(),
     onNavigateToMyProfile: () -> Unit,
     onNavigateToOtherProfile: (String, String) -> Unit,
-    onNavigateToShowDetail: (String) -> Unit
+    onNavigateToShowDetail: (String) -> Unit,
+    onNavigateToNotifications: () -> Unit
 ) {
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
@@ -50,12 +55,38 @@ fun MainHubScreen(
     val isSearchActive by viewModel.isSearchActive.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    LaunchedEffect(Unit) {
+        notificationsViewModel.fetchUnreadCount()
+    }
+
     Scaffold(
         topBar = {
             Column {
                 CenterAlignedTopAppBar(
                     title = { Text("FilmTracker", fontWeight = FontWeight.Bold) },
                     actions = {
+                        IconButton(onClick = onNavigateToNotifications) {
+                            BadgedBox(
+                                badge = {
+                                    if (notificationsViewModel.unreadCount > 0) {
+                                        Badge(
+                                            containerColor = Color.Red,
+                                            contentColor = Color.White
+                                        ) {
+                                            Text(notificationsViewModel.unreadCount.toString())
+                                        }
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Notifications,
+                                    contentDescription = "Notificaciones",
+                                    modifier = Modifier.size(28.dp),
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+
                         IconButton(onClick = onNavigateToMyProfile) {
                             Icon(
                                 imageVector = Icons.Default.AccountCircle,

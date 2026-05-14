@@ -21,15 +21,19 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-// Importamos la nueva pantalla y ViewModel de confirmación de cuenta
+
+// Importaciones de Pantallas
 import com.example.santabarbaramobile.ui.auth.Screens.ConfirmAccountScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ForgotPasswordScreen
 import com.example.santabarbaramobile.ui.auth.Screens.LoginScreen
 import com.example.santabarbaramobile.ui.auth.Screens.MainHubScreen
+import com.example.santabarbaramobile.ui.auth.Screens.NotificationsScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ProfileScreen
 import com.example.santabarbaramobile.ui.auth.Screens.RegisterScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ReviewDetailScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ShowDetailScreen
+
+// Importaciones de ViewModels
 import com.example.santabarbaramobile.ui.auth.ViewModels.ConfirmAccountViewModel
 import com.example.santabarbaramobile.ui.auth.ViewModels.ForgotPassViewModel
 import com.example.santabarbaramobile.ui.auth.ViewModels.LoginViewModel
@@ -37,6 +41,7 @@ import com.example.santabarbaramobile.ui.auth.ViewModels.ProfileViewModel
 import com.example.santabarbaramobile.ui.auth.ViewModels.RegisterViewModel
 import com.example.santabarbaramobile.ui.auth.ViewModels.ReviewDetailViewModel
 import com.example.santabarbaramobile.ui.auth.ViewModels.ShowDetailViewModel
+
 import com.example.santabarbaramobile.ui.navigation.AuthScreen
 import com.example.santabarbaramobile.ui.theme.SantaBarbaraMobileTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -130,6 +135,9 @@ fun AppNavigation() {
                 },
                 onNavigateToShowDetail = { showId ->
                     navController.navigate("show_detail/$showId")
+                },
+                onNavigateToNotifications = {
+                    navController.navigate("notifications")
                 }
             )
         }
@@ -227,6 +235,24 @@ fun AppNavigation() {
                 reviewId = reviewId,
                 viewModel = reviewDetailViewModel,
                 onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(route = "notifications") {
+            NotificationsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNotificationClick = { notification ->
+                    when (notification.type) {
+                        "REVIEW_LIKE", "REVIEW_COMMENT" -> {
+                            notification.relatedEntityId?.let { reviewId ->
+                                navController.navigate("review_detail/$reviewId")
+                            }
+                        }
+                        "FRIEND_REQUEST", "FRIEND_ACCEPTED" -> {
+                            navController.navigate("friends_manager")
+                        }
+                    }
+                }
             )
         }
     }

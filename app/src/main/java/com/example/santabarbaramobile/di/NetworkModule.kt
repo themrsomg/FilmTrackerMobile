@@ -6,6 +6,7 @@ import com.example.santabarbaramobile.data.remote.auth.AuthApi
 import com.example.santabarbaramobile.data.remote.library.UserLibraryApi
 import com.example.santabarbaramobile.data.remote.users.UsersApi
 import com.example.santabarbaramobile.data.remote.friends.FriendsApi
+import com.example.santabarbaramobile.data.remote.notifications.NotificationsApi
 import com.example.santabarbaramobile.data.remote.reviews.CommentsApi
 import com.example.santabarbaramobile.data.remote.reviews.ReviewsApi // <-- NUEVA IMPORTACIÓN
 import dagger.Module
@@ -44,6 +45,10 @@ annotation class FriendsRetrofit
 @Retention(AnnotationRetention.BINARY)
 annotation class ReviewsRetrofit
 
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class NotificationsRetrofit
+
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
@@ -54,6 +59,7 @@ object NetworkModule {
     private const val LIBRARY_BASE_URL = "http://10.0.2.2:3004/"
     private const val REVIEWS_BASE_URL = "http://10.0.2.2:3005/"
     private const val FRIENDS_BASE_URL = "http://10.0.2.2:3006/"
+    private const val NOTIFICATIONS_BASE_URL = "http://10.0.2.2:3008/"
 
     @Provides
     @Singleton
@@ -183,5 +189,22 @@ object NetworkModule {
     @Singleton
     fun provideCommentsApi(@ReviewsRetrofit retrofit: Retrofit): CommentsApi {
         return retrofit.create(CommentsApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    @NotificationsRetrofit
+    fun provideNotificationsRetrofit(okHttpClient: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(NOTIFICATIONS_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideNotificationsApi(@NotificationsRetrofit retrofit: Retrofit): NotificationsApi {
+        return retrofit.create(NotificationsApi::class.java)
     }
 }
