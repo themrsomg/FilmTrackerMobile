@@ -23,6 +23,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.santabarbaramobile.ui.auth.Screens.AdminDashboardScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ConfirmAccountScreen
+import com.example.santabarbaramobile.ui.auth.Screens.EditProfileScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ForgotPasswordScreen
 import com.example.santabarbaramobile.ui.auth.Screens.LeaderboardsScreen
 import com.example.santabarbaramobile.ui.auth.Screens.LoginScreen
@@ -156,6 +157,12 @@ fun AppNavigation() {
             )
         }
 
+        composable("edit_profile") {
+            EditProfileScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
         composable(
             route = "profile?userId={userId}&username={username}",
             arguments = listOf(
@@ -191,6 +198,9 @@ fun AppNavigation() {
                 },
                 onNavigateToMyReports = {
                     navController.navigate("my_reports")
+                },
+                onNavigateToEditProfile = {
+                    navController.navigate("edit_profile")
                 }
             )
         }

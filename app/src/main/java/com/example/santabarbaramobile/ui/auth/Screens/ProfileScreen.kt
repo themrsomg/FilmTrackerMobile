@@ -70,6 +70,7 @@ fun ProfileScreen(
     onNavigateToFriendsManager: () -> Unit,
     onLogout: () -> Unit,
     onNavigateToMyReports: () -> Unit,
+    onNavigateToEditProfile: () -> Unit,
     onNavigateToConfirm: (String) -> Unit
 ) {
     val state = viewModel.uiState
@@ -102,6 +103,7 @@ fun ProfileScreen(
                     onLogout = onLogout,
                     onNavigateToFriendsManager = onNavigateToFriendsManager,
                     onNavigateToMyReports = onNavigateToMyReports,
+                    onNavigateToEditProfile = onNavigateToEditProfile,
                     onAddFriend = { viewModel.sendFriendRequest() },
                     onRemoveFriend = { viewModel.removeFriend() },
                     onNavigateToConfirm = onNavigateToConfirm,
@@ -121,6 +123,7 @@ private fun ProfileContent(
     onLogout: () -> Unit,
     onNavigateToFriendsManager: () -> Unit,
     onNavigateToMyReports: () -> Unit,
+    onNavigateToEditProfile: () -> Unit,
     onAddFriend: () -> Unit,
     onRemoveFriend: () -> Unit,
     onNavigateToConfirm: (String) -> Unit,
@@ -145,7 +148,7 @@ private fun ProfileContent(
             )
         } else {
             AsyncImage(
-                model = state.profileImage,
+                model = state.profileImage.replace("localhost", "10.0.2.2"),
                 contentDescription = "Avatar",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -352,6 +355,14 @@ private fun ProfileContent(
 
         } else if (state.isOwnProfile) {
             Spacer(modifier = Modifier.height(16.dp))
+            OutlinedButton(
+                onClick = onNavigateToEditProfile,
+                modifier = Modifier.fillMaxWidth(0.7f)
+            ) {
+                Text("Editar Perfil")
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = onNavigateToFriendsManager,
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
