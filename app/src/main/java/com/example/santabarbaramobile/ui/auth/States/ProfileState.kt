@@ -16,5 +16,6 @@ data class ProfileState(
     val targetAuthId: String = "",
     val friendshipStatus: String = "NONE",
     val currentUserRole: String = "USER",
+    val targetAccountStatus: String = "ACTIVE",
     val banSuccessMessage: String? = null
 )

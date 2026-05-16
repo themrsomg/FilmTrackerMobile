@@ -34,10 +34,12 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -58,6 +60,7 @@ import coil.compose.AsyncImage
 import com.example.santabarbaramobile.data.remote.library.LibraryItemDto
 import com.example.santabarbaramobile.ui.auth.States.ProfileState
 import com.example.santabarbaramobile.ui.auth.ViewModels.ProfileViewModel
+import com.example.santabarbaramobile.ui.components.ReportDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -100,7 +103,10 @@ fun ProfileScreen(
                     onAddFriend = { viewModel.sendFriendRequest() },
                     onRemoveFriend = { viewModel.removeFriend() },
                     onNavigateToConfirm = onNavigateToConfirm,
-                    onBanUser = { viewModel.banCurrentUser() }
+                    onSuspendUser = { days -> viewModel.suspendCurrentUser(days) },
+                    onBanUser = { viewModel.banCurrentUser() },
+                    onUnbanUser = { viewModel.unbanCurrentUser() },
+                    onReportUser = { reason, desc -> viewModel.reportCurrentUser(reason, desc) }
                 )
             }
         }
@@ -115,7 +121,10 @@ private fun ProfileContent(
     onAddFriend: () -> Unit,
     onRemoveFriend: () -> Unit,
     onNavigateToConfirm: (String) -> Unit,
-    onBanUser: () -> Unit
+    onSuspendUser: (Long) -> Unit,
+    onBanUser: () -> Unit,
+    onUnbanUser: () -> Unit,
+    onReportUser: (String, String) -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -214,40 +223,117 @@ private fun ProfileContent(
                 }
             }
 
+            var showReportDialog by remember { mutableStateOf(false) }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = { showReportDialog = true },
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+            ) {
+                Text("Reportar Perfil")
+            }
+
+            if (showReportDialog) {
+                ReportDialog(
+                    targetType = "USER",
+                    targetId = state.targetAuthId,
+                    onDismiss = { showReportDialog = false },
+                    onSubmit = { type, id, reason, desc ->
+                        showReportDialog = false
+                        onReportUser(reason, desc)
+                    }
+                )
+            }
+
             if (state.currentUserRole == "ADMIN") {
-                var showBanDialog by remember { mutableStateOf(false) }
-
                 Spacer(modifier = Modifier.height(16.dp))
-                Button(
-                    onClick = { showBanDialog = true },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                    modifier = Modifier.fillMaxWidth(0.7f)
-                ) {
-                    Icon(Icons.Default.Warning, contentDescription = null, tint = Color.White)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Banear Usuario", color = Color.White, fontWeight = FontWeight.Bold)
-                }
+                HorizontalDivider(color = Color.DarkGray)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Herramientas de Administrador", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+                Spacer(modifier = Modifier.height(8.dp))
 
-                if (showBanDialog) {
-                    AlertDialog(
-                        onDismissRequest = { showBanDialog = false },
-                        title = { Text("¿Banear a @${state.username}?") },
-                        text = { Text("Esta acción suspenderá su cuenta y le impedirá iniciar sesión en la plataforma.") },
-                        confirmButton = {
-                            Button(
-                                onClick = {
-                                    showBanDialog = false
-                                    onBanUser()
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                            ) {
-                                Text("Sí, Banear")
+                if (state.targetAccountStatus == "BANNED") {
+                    Button(
+                        onClick = onUnbanUser,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                        modifier = Modifier.fillMaxWidth(0.7f)
+                    ) {
+                        Text("Quitar Baneo / Activar", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                } else {
+                    var showSuspendDialog by remember { mutableStateOf(false) }
+                    var showBanDialog by remember { mutableStateOf(false) }
+                    val duraciones = listOf(1L to "1 día", 3L to "3 días", 7L to "7 días", 30L to "30 días")
+                    var selectedDuration by remember { mutableStateOf(duraciones.first()) }
+
+                    Button(
+                        onClick = { showSuspendDialog = true },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800)),
+                        modifier = Modifier.fillMaxWidth(0.7f)
+                    ) {
+                        Text("Suspender temporalmente", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Button(
+                        onClick = { showBanDialog = true },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE50914)),
+                        modifier = Modifier.fillMaxWidth(0.7f)
+                    ) {
+                        Text("Banear permanentemente", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+
+                    if (showSuspendDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showSuspendDialog = false },
+                            title = { Text("Suspender a @${state.username}") },
+                            text = {
+                                Column {
+                                    Text("Selecciona la duración de la suspensión:")
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    duraciones.forEach { duracion ->
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            RadioButton(
+                                                selected = (duracion == selectedDuration),
+                                                onClick = { selectedDuration = duracion }
+                                            )
+                                            Text(text = duracion.second)
+                                        }
+                                    }
+                                }
+                            },
+                            confirmButton = {
+                                Button(onClick = {
+                                    showSuspendDialog = false
+                                    onSuspendUser(selectedDuration.first)
+                                }) { Text("Suspender") }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showSuspendDialog = false }) { Text("Cancelar") }
                             }
-                        },
-                        dismissButton = {
-                            TextButton(onClick = { showBanDialog = false }) { Text("Cancelar") }
-                        }
-                    )
+                        )
+                    }
+
+                    if (showBanDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showBanDialog = false },
+                            title = { Text("¿Banear a @${state.username}?") },
+                            text = { Text("¿Estás seguro de que deseas banear permanentemente a este usuario?") },
+                            confirmButton = {
+                                Button(
+                                    onClick = {
+                                        showBanDialog = false
+                                        onBanUser()
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE50914))
+                                ) { Text("Sí, Banear") }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showBanDialog = false }) { Text("Cancelar") }
+                            }
+                        )
+                    }
                 }
             }
 

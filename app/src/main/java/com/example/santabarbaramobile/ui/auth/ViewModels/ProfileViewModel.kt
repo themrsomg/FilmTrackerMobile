@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.santabarbaramobile.data.remote.library.LibraryItemDto
+import com.example.santabarbaramobile.data.repository.AuthRepository
 import com.example.santabarbaramobile.data.repository.FriendsRepository
 import com.example.santabarbaramobile.data.repository.LibraryRepository
 import com.example.santabarbaramobile.data.repository.ModerationRepository
@@ -27,6 +28,7 @@ class ProfileViewModel @Inject constructor(
     private val libraryRepository: LibraryRepository,
     private val showRepository: ShowRepository,
     private val friendsRepository: FriendsRepository,
+    private val authRepository: AuthRepository,
     private val moderationRepository: ModerationRepository,
     private val tokenManager: TokenManager
 ) : ViewModel() {
@@ -134,6 +136,11 @@ class ProfileViewModel @Inject constructor(
                         friendshipStatus = fetchedStatus,
                         isLoading = false
                     )
+                    if (!isOwnProfile && roleFromToken == "ADMIN" && userId != null) {
+                        authRepository.getAccountStatus(userId).onSuccess { statusDto ->
+                            uiState = uiState.copy(targetAccountStatus = statusDto.accountStatus ?: "ACTIVE")
+                        }
+                    }
                 } else {
                     uiState = uiState.copy(
                         error = profileError,
@@ -159,25 +166,42 @@ class ProfileViewModel @Inject constructor(
         } catch (e: Exception) { item }
     }
 
+    fun suspendCurrentUser(days: Long) {
+        val targetId = uiState.targetAuthId
+        if (targetId.isEmpty()) return
+        viewModelScope.launch {
+            uiState = uiState.copy(isLoading = true)
+            authRepository.suspendUserDirectly(targetId, days, "Suspensión administrativa desde app móvil.")
+                .onSuccess {
+                    uiState = uiState.copy(isLoading = false, targetAccountStatus = "SUSPENDED", banSuccessMessage = "Usuario suspendido por $days días.")
+                }
+                .onFailure { uiState = uiState.copy(isLoading = false, error = "Error al suspender: ${it.message}") }
+        }
+    }
+
     fun banCurrentUser() {
         val targetId = uiState.targetAuthId
         if (targetId.isEmpty()) return
-
         viewModelScope.launch {
             uiState = uiState.copy(isLoading = true)
-            moderationRepository.autoBanUser(targetId)
+            authRepository.banUserDirectly(targetId, "Violación a los términos (Admin)")
                 .onSuccess {
-                    uiState = uiState.copy(
-                        isLoading = false,
-                        banSuccessMessage = "Usuario baneado exitosamente de la plataforma."
-                    )
+                    uiState = uiState.copy(isLoading = false, targetAccountStatus = "BANNED", banSuccessMessage = "Usuario baneado permanentemente.")
                 }
-                .onFailure {
-                    uiState = uiState.copy(
-                        isLoading = false,
-                        error = "Fallo al banear: ${it.message}"
-                    )
+                .onFailure { uiState = uiState.copy(isLoading = false, error = "Error al banear: ${it.message}") }
+        }
+    }
+
+    fun unbanCurrentUser() {
+        val targetId = uiState.targetAuthId
+        if (targetId.isEmpty()) return
+        viewModelScope.launch {
+            uiState = uiState.copy(isLoading = true)
+            authRepository.unbanUserDirectly(targetId)
+                .onSuccess {
+                    uiState = uiState.copy(isLoading = false, targetAccountStatus = "ACTIVE", banSuccessMessage = "Se ha restaurado el acceso al usuario.")
                 }
+                .onFailure { uiState = uiState.copy(isLoading = false, error = "Error al desbanear: ${it.message}") }
         }
     }
 
@@ -209,6 +233,28 @@ class ProfileViewModel @Inject constructor(
                 }
                 .onFailure {
                     uiState = uiState.copy(friendshipStatus = "FRIENDS")
+                }
+        }
+    }
+
+    fun reportCurrentUser(reasonCode: String, description: String) {
+        val targetId = uiState.targetAuthId
+        if (targetId.isEmpty()) return
+
+        viewModelScope.launch {
+            uiState = uiState.copy(isLoading = true)
+            moderationRepository.createReport("USER", targetId, reasonCode, description)
+                .onSuccess {
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        banSuccessMessage = "Reporte enviado exitosamente al administrador."
+                    )
+                }
+                .onFailure {
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        error = "Error al reportar: Si ya lo reportaste antes, debes esperar la revisión."
+                    )
                 }
         }
     }

@@ -5,10 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.santabarbaramobile.data.model.AuthStatsDto
-import com.example.santabarbaramobile.data.model.ModerationStatsDto
-import com.example.santabarbaramobile.data.model.ReviewStatsDto
+import com.example.santabarbaramobile.data.model.*
 import com.example.santabarbaramobile.data.repository.AdminDashboardRepository
+import com.example.santabarbaramobile.data.repository.ModerationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -16,11 +15,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AdminDashboardViewModel @Inject constructor(
-    private val repository: AdminDashboardRepository
+    private val adminRepository: AdminDashboardRepository,
+    private val moderationRepository: ModerationRepository
 ) : ViewModel() {
 
     var isLoading by mutableStateOf(true)
         private set
+    var isReportsLoading by mutableStateOf(false)
+        private set
+
     var authStats by mutableStateOf<AuthStatsDto?>(null)
         private set
     var reviewStats by mutableStateOf<ReviewStatsDto?>(null)
@@ -28,23 +31,71 @@ class AdminDashboardViewModel @Inject constructor(
     var modStats by mutableStateOf<ModerationStatsDto?>(null)
         private set
 
+    var reportsList by mutableStateOf<List<AdminReportDto>>(emptyList())
+        private set
+    var currentFilter by mutableStateOf("PENDING")
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
+    var successMessage by mutableStateOf<String?>(null)
+        private set
+
     init {
         loadDashboardStats()
+        loadReports(currentFilter)
     }
 
     fun loadDashboardStats() {
         viewModelScope.launch {
             isLoading = true
-
-            val authDeferred = async { repository.getAuthStats() }
-            val reviewDeferred = async { repository.getReviewStats() }
-            val modDeferred = async { repository.getModerationStats() }
+            val authDeferred = async { adminRepository.getAuthStats() }
+            val reviewDeferred = async { adminRepository.getReviewStats() }
+            val modDeferred = async { adminRepository.getModerationStats() }
 
             authStats = authDeferred.await().getOrNull()
             reviewStats = reviewDeferred.await().getOrNull()
             modStats = modDeferred.await().getOrNull()
-
             isLoading = false
+        }
+    }
+
+    fun changeFilter(newFilter: String) {
+        currentFilter = newFilter
+        loadReports(newFilter)
+    }
+
+    fun loadReports(status: String) {
+        viewModelScope.launch {
+            isReportsLoading = true
+            errorMessage = null
+            moderationRepository.getAdminReports(status, page = 1)
+                .onSuccess { response ->
+                    reportsList = response.reports ?: emptyList()
+                }
+                .onFailure {
+                    errorMessage = "Error al obtener reportes: ${it.message}"
+                }
+            isReportsLoading = false
+        }
+    }
+
+    fun applyAction(reportId: String, actionType: String, note: String, duration: String? = null) {
+        viewModelScope.launch {
+            isReportsLoading = true
+            val result = if (actionType == "DISMISS_REPORT") {
+                moderationRepository.dismissReportDirectly(reportId, note)
+            } else {
+                moderationRepository.executeReportAction(reportId, actionType, note, duration)
+            }
+
+            result.onSuccess {
+                successMessage = "Acción ejecutada correctamente."
+                loadReports(currentFilter)
+                loadDashboardStats()
+            }
+                .onFailure {
+                    errorMessage = "Fallo al aplicar acción: ${it.message}"
+                }
+            isReportsLoading = false
         }
     }
 }

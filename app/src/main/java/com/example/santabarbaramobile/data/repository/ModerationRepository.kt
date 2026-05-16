@@ -1,8 +1,9 @@
 package com.example.santabarbaramobile.data.repository
 
+import com.example.santabarbaramobile.data.model.AdminReportResponse
 import com.example.santabarbaramobile.data.model.AdminActionRequestDto
-import com.example.santabarbaramobile.data.model.ReportRequestDto
 import com.example.santabarbaramobile.data.remote.moderation.ModerationApi
+import com.example.santabarbaramobile.data.remote.moderation.ReportRequestDto
 import com.example.santabarbaramobile.data.security.TokenManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -14,35 +15,54 @@ class ModerationRepository @Inject constructor(
     private val api: ModerationApi,
     private val tokenManager: TokenManager
 ) {
-    suspend fun autoBanUser(targetAuthId: String): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun createReport(targetType: String, targetId: String, reason: String, description: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val token = "Bearer ${tokenManager.getToken()}"
+            val request = ReportRequestDto(targetType, targetId, reason, description)
+            val res = api.createReport(token, request)
 
-            val reportReq = ReportRequestDto(
-                targetType = "USER",
-                targetId = targetAuthId,
-                reason = "OTHER",
-                description = "Auto-reporte para Baneo Manual desde Android"
-            )
-            val reportRes = api.createReport(token, reportReq)
+            if (res.isSuccessful) Result.success(Unit)
+            else Result.failure(Exception("Error al enviar reporte. (Código: ${res.code()})"))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
-            if (!reportRes.isSuccessful || reportRes.body()?.data == null) {
-                return@withContext Result.failure(Exception("Error al crear el reporte inicial"))
-            }
+    suspend fun getAdminReports(status: String, page: Int): Result<AdminReportResponse> = withContext(Dispatchers.IO) {
+        try {
+            val token = "Bearer ${tokenManager.getToken()}"
+            val res = api.getAdminReports(token, status, page)
 
-            val reportId = reportRes.body()!!.data.id
-
-            val actionReq = AdminActionRequestDto(
-                actionType = "BAN",
-                note = "Baneado manualmente por el administrador desde la App Móvil"
-            )
-            val actionRes = api.executeAction(token, reportId, actionReq)
-
-            if (actionRes.isSuccessful) {
-                Result.success(Unit)
+            if (res.isSuccessful && res.body()?.data != null) {
+                Result.success(res.body()!!.data!!)
             } else {
-                Result.failure(Exception("Error al aplicar la suspensión"))
+                Result.failure(Exception("Error al cargar la bandeja de reportes (${res.code()})"))
             }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun executeReportAction(reportId: String, actionType: String, note: String, duration: String?): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val token = "Bearer ${tokenManager.getToken()}"
+            val request = AdminActionRequestDto(actionType, note, duration)
+            val res = api.executeReportAction(token, reportId, request)
+
+            if (res.isSuccessful) Result.success(Unit)
+            else Result.failure(Exception("Error al aplicar castigo. Código: ${res.code()}"))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun dismissReportDirectly(reportId: String, note: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val token = "Bearer ${tokenManager.getToken()}"
+            val res = api.dismissReport(token, reportId, mapOf("note" to note))
+
+            if (res.isSuccessful) Result.success(Unit)
+            else Result.failure(Exception("Error al descartar reporte. Código: ${res.code()}"))
         } catch (e: Exception) {
             Result.failure(e)
         }

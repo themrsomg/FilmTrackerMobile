@@ -1,5 +1,8 @@
 package com.example.santabarbaramobile.data.repository
 
+import com.example.santabarbaramobile.data.model.AccountStatusDto
+import com.example.santabarbaramobile.data.model.BanRequestDto
+import com.example.santabarbaramobile.data.model.SuspendRequestDto
 import com.example.santabarbaramobile.data.remote.auth.LoginRequest
 import com.example.santabarbaramobile.data.remote.auth.LoginResponse
 import com.example.santabarbaramobile.data.remote.auth.ForgotPasswordRequest
@@ -122,5 +125,46 @@ class AuthRepository @Inject constructor(
         } catch (e: Exception) {
             "Credenciales incorrectas o problema de servidor."
         }
+    }
+
+    suspend fun getAccountStatus(authId: String): Result<AccountStatusDto> = withContext(Dispatchers.IO) {
+        try {
+            val token = "Bearer ${tokenManager.getToken()}"
+            val res = authApi.getAccountStatus(token, authId)
+            if (res.isSuccessful && res.body()?.data != null) Result.success(res.body()!!.data)
+            else Result.failure(Exception("Error HTTP ${res.code()}"))
+        } catch (e: Exception) { Result.failure(e) }
+    }
+
+    suspend fun suspendUserDirectly(authId: String, days: Long, reason: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val token = "Bearer ${tokenManager.getToken()}"
+            val futureDate = java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC).plusDays(days)
+            val suspendedUntilStr = futureDate.format(java.time.format.DateTimeFormatter.ISO_INSTANT)
+
+            val request = SuspendRequestDto(suspendedUntilStr, reason)
+            val res = authApi.suspendUser(token, authId, request)
+
+            if (res.isSuccessful) Result.success(Unit) else Result.failure(Exception("Error ${res.code()}"))
+        } catch (e: Exception) { Result.failure(e) }
+    }
+
+    suspend fun banUserDirectly(authId: String, reason: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val token = "Bearer ${tokenManager.getToken()}"
+            val request = BanRequestDto(reason)
+            val res = authApi.banUser(token, authId, request)
+
+            if (res.isSuccessful) Result.success(Unit) else Result.failure(Exception("Error ${res.code()}"))
+        } catch (e: Exception) { Result.failure(e) }
+    }
+
+    suspend fun unbanUserDirectly(authId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val token = "Bearer ${tokenManager.getToken()}"
+            val res = authApi.unbanUser(token, authId)
+
+            if (res.isSuccessful) Result.success(Unit) else Result.failure(Exception("Error ${res.code()}"))
+        } catch (e: Exception) { Result.failure(e) }
     }
 }
