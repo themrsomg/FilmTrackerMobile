@@ -1,30 +1,53 @@
 package com.example.santabarbaramobile.ui.auth.ViewModels
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.santabarbaramobile.data.model.Show
-import com.example.santabarbaramobile.data.model.UserDto // <-- Asegúrate de importar esto
+import com.example.santabarbaramobile.data.model.UserDto
 import com.example.santabarbaramobile.data.repository.ShowRepository
-import com.example.santabarbaramobile.data.repository.UserRepository // <-- Importamos tu repositorio
+import com.example.santabarbaramobile.data.repository.UserRepository
+import com.example.santabarbaramobile.data.security.TokenManager
 import com.example.santabarbaramobile.ui.auth.States.HomeUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import javax.inject.Inject
+import android.util.Base64
 
 @HiltViewModel
 class MainHubViewModel @Inject constructor(
     private val showRepository: ShowRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
     val uiState = _uiState.asStateFlow()
 
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery = _searchQuery.asStateFlow()
+
+    private val _searchResults = MutableStateFlow<List<Show>>(emptyList())
+    val searchResults = _searchResults.asStateFlow()
+
+    private val _searchUserResult = MutableStateFlow<UserDto?>(null)
+    val searchUserResult = _searchUserResult.asStateFlow()
+
+    private val _isSearchActive = MutableStateFlow(false)
+    val isSearchActive = _isSearchActive.asStateFlow()
+
+    var currentUserRole by mutableStateOf("USER")
+        private set
+
     init {
         fetchHomeData()
+        loadUserRole()
     }
 
     fun fetchHomeData() {
@@ -38,17 +61,26 @@ class MainHubViewModel @Inject constructor(
         }
     }
 
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery = _searchQuery.asStateFlow()
+    private fun loadUserRole() {
+        viewModelScope.launch {
+            try {
+                val token = tokenManager.getToken()
+                if (token != null) {
+                    val parts = token.split(".")
+                    if (parts.size == 3) {
+                        val flags = Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP
+                        val payload = String(Base64.decode(parts[1], flags))
+                        val jsonObject = JSONObject(payload)
 
-    private val _searchResults = MutableStateFlow<List<Show>>(emptyList())
-    val searchResults = _searchResults.asStateFlow()
-
-    private val _searchUserResult = MutableStateFlow<UserDto?>(null)
-    val searchUserResult = _searchUserResult.asStateFlow()
-
-    private val _isSearchActive = MutableStateFlow(false)
-    val isSearchActive = _isSearchActive.asStateFlow()
+                        currentUserRole = jsonObject.optString("role", "USER")
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                currentUserRole = "USER"
+            }
+        }
+    }
 
     fun onSearchQueryChange(newQuery: String) {
         _searchQuery.value = newQuery

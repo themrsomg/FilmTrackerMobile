@@ -61,4 +61,7 @@ interface ReviewsApi {
         @Path("reviewId") reviewId: String,
         @Body request: UpdateReviewRequest
     ): Response<SingleReviewResponse>
+
+    @GET("api/reviews/admin/stats")
+    suspend fun getReviewStats(@Header("Authorization") token: String): Response<AdminStatsResponse<ReviewStatsDto>>
 }

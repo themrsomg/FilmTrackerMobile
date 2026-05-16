@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -47,7 +48,8 @@ fun MainHubScreen(
     onNavigateToMyProfile: () -> Unit,
     onNavigateToOtherProfile: (String, String) -> Unit,
     onNavigateToShowDetail: (String) -> Unit,
-    onNavigateToNotifications: () -> Unit
+    onNavigateToNotifications: () -> Unit,
+    onNavigateToAdminPanel: () -> Unit
 ) {
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
@@ -65,6 +67,18 @@ fun MainHubScreen(
                 CenterAlignedTopAppBar(
                     title = { Text("FilmTracker", fontWeight = FontWeight.Bold) },
                     actions = {
+
+                        if (viewModel.currentUserRole == "ADMIN") {
+                            IconButton(onClick = onNavigateToAdminPanel) {
+                                Icon(
+                                    imageVector = Icons.Default.Security,
+                                    contentDescription = "Panel de Administración",
+                                    modifier = Modifier.size(28.dp),
+                                    tint = Color(0xFFFFD700)
+                                )
+                            }
+                        }
+
                         IconButton(onClick = onNavigateToNotifications) {
                             BadgedBox(
                                 badge = {

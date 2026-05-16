@@ -21,8 +21,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-
-// Importaciones de Pantallas
+import com.example.santabarbaramobile.ui.auth.Screens.AdminDashboardScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ConfirmAccountScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ForgotPasswordScreen
 import com.example.santabarbaramobile.ui.auth.Screens.LoginScreen
@@ -32,8 +31,6 @@ import com.example.santabarbaramobile.ui.auth.Screens.ProfileScreen
 import com.example.santabarbaramobile.ui.auth.Screens.RegisterScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ReviewDetailScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ShowDetailScreen
-
-// Importaciones de ViewModels
 import com.example.santabarbaramobile.ui.auth.ViewModels.ConfirmAccountViewModel
 import com.example.santabarbaramobile.ui.auth.ViewModels.ForgotPassViewModel
 import com.example.santabarbaramobile.ui.auth.ViewModels.LoginViewModel
@@ -93,6 +90,9 @@ fun AppNavigation() {
                 },
                 onNavigateToConfirm = { email ->
                     navController.navigate("confirm_account/$email")
+                },
+                onNavigateToLogin = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -138,6 +138,9 @@ fun AppNavigation() {
                 },
                 onNavigateToNotifications = {
                     navController.navigate("notifications")
+                },
+                onNavigateToAdminPanel = {
+                    navController.navigate("admin_dashboard")
                 }
             )
         }
@@ -171,6 +174,9 @@ fun AppNavigation() {
                         popUpTo(0) { inclusive = true }
                         launchSingleTop = true
                     }
+                },
+                onNavigateToConfirm = { email ->
+                    navController.navigate("confirm_account/$email")
                 }
             )
         }
@@ -194,7 +200,6 @@ fun AppNavigation() {
 
             if (!showId.isNullOrEmpty()) {
                 val viewModel: ShowDetailViewModel = hiltViewModel()
-
                 ShowDetailScreen(
                     showId = showId,
                     viewModel = viewModel,
@@ -204,6 +209,9 @@ fun AppNavigation() {
                     },
                     onNavigateToReviewDetail = { reviewId ->
                         navController.navigate("review_detail/$reviewId")
+                    },
+                    onNavigateToConfirm = { email ->
+                        navController.navigate("confirm_account/$email")
                     }
                 )
             } else {
@@ -223,6 +231,12 @@ fun AppNavigation() {
                     }
                 }
             }
+        }
+
+        composable("admin_dashboard") {
+            AdminDashboardScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
 
         composable(

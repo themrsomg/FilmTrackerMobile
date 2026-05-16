@@ -14,5 +14,7 @@ data class ProfileState(
     val watchlist: List<LibraryItemDto> = emptyList(),
     val favorites: List<LibraryItemDto> = emptyList(),
     val targetAuthId: String = "",
-    val friendshipStatus: String = "NONE"
+    val friendshipStatus: String = "NONE",
+    val currentUserRole: String = "USER",
+    val banSuccessMessage: String? = null
 )

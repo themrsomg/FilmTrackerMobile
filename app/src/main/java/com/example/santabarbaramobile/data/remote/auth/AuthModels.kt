@@ -30,7 +30,7 @@ data class UserDto(
     val id: String,
     val email: String,
     val username: String? = null,
-    val role: String,
+    val role: String? = "USER",
     @SerializedName("emailVerified") val emailVerified: Boolean = false
 )
 
@@ -58,7 +58,8 @@ data class UserResponse(
     @SerializedName("username") val username: String,
     @SerializedName("email") val email: String,
     @SerializedName("profileImage") val profileImage: String? = null,
-    @SerializedName("isEmailVerified") val isEmailVerified: Boolean = false
+    @SerializedName("isEmailVerified") val isEmailVerified: Boolean = false,
+    val role: String? = "USER"
 )
 
 data class LoginResponse(

@@ -4,9 +4,11 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -34,6 +36,9 @@ fun ReviewDetailScreen(
 ) {
     var commentText by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    var showVerificationDialog by remember { mutableStateOf(false) }
+
     val context = LocalContext.current
 
     val pickMedia = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -79,9 +84,13 @@ fun ReviewDetailScreen(
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
                         onClick = {
-                            viewModel.postComment(context, reviewId, commentText, selectedImageUri)
-                            commentText = ""
-                            selectedImageUri = null
+                            if (viewModel.isEmailVerified) {
+                                viewModel.postComment(context, reviewId, commentText, selectedImageUri)
+                                commentText = ""
+                                selectedImageUri = null
+                            } else {
+                                showVerificationDialog = true
+                            }
                         },
                         enabled = commentText.isNotBlank() || selectedImageUri != null
                     ) {
@@ -119,8 +128,8 @@ fun ReviewDetailScreen(
                                 ) {
                                     Text("Usuario Anónimo", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
 
-                                    if (viewModel.currentUserId == comment.authId) {
-                                        IconButton(onClick = { viewModel.deleteComment(comment.id, reviewId) }, modifier = Modifier.size(24.dp)) {
+                                    if (viewModel.currentUserId == comment.authId || viewModel.currentUserRole == "ADMIN") {
+                                        IconButton(onClick = { viewModel.deleteComment(comment.id.toString(), reviewId) }, modifier = Modifier.size(24.dp)) {
                                             Icon(Icons.Default.Delete, contentDescription = "Borrar", tint = MaterialTheme.colorScheme.error)
                                         }
                                     }
@@ -143,6 +152,21 @@ fun ReviewDetailScreen(
                     }
                 }
             }
+        }
+
+        if (showVerificationDialog) {
+            AlertDialog(
+                onDismissRequest = { showVerificationDialog = false },
+                title = { Text("Verificación Requerida") },
+                text = { Text("Debes verificar tu correo electrónico para poder comentar en las reseñas y participar en la comunidad.") },
+                confirmButton = {
+                    Button(onClick = {
+                        showVerificationDialog = false
+                    }) {
+                        Text("Entendido")
+                    }
+                }
+            )
         }
     }
 }

@@ -29,11 +29,23 @@ class ReviewDetailViewModel @Inject constructor(
 
     var comments by mutableStateOf<List<CommentDto>>(emptyList())
         private set
+
     var isLoading by mutableStateOf(false)
         private set
+
     var errorMessage by mutableStateOf<String?>(null)
         private set
+
     var currentUserId by mutableStateOf<String?>(null)
+        private set
+
+    var currentUserRole by mutableStateOf<String?>(null)
+        private set
+
+    var isEmailVerified by mutableStateOf(false)
+        private set
+
+    var currentUserEmail by mutableStateOf("")
         private set
 
     init { loadCurrentUserId() }
@@ -44,6 +56,9 @@ class ReviewDetailViewModel @Inject constructor(
             if (token != null) {
                 userRepository.getUserProfile("Bearer $token").onSuccess { profile ->
                     currentUserId = profile.authId
+                    currentUserRole = profile.role
+                    isEmailVerified = profile.isEmailVerified
+                    currentUserEmail = profile.email
                 }
             }
         }

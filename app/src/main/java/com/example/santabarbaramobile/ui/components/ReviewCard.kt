@@ -37,12 +37,14 @@ import java.time.Instant
 fun ReviewCard(
     review: ReviewDto,
     isOwner: Boolean,
+    isAdmin: Boolean = false,
     onEditClick: (ReviewDto) -> Unit,
     onDeleteClick: (String) -> Unit,
     onLikeClick: (String, Boolean) -> Unit,
     onCardClick: () -> Unit
 ) {
     val showEditButton = isOwner && canEditReview(review.createdAt)
+    val showDeleteButton = isOwner || isAdmin
 
     Card(
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).clickable { onCardClick() },
@@ -56,15 +58,17 @@ fun ReviewCard(
             ) {
                 Text(text = review.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
-                if (isOwner) {
+                if (showEditButton || showDeleteButton) {
                     Row {
                         if (showEditButton) {
                             IconButton(onClick = { onEditClick(review) }) {
                                 Icon(Icons.Default.Edit, contentDescription = "Editar", tint = MaterialTheme.colorScheme.primary)
                             }
                         }
-                        IconButton(onClick = { onDeleteClick(review.id) }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Borrar", tint = MaterialTheme.colorScheme.error)
+                        if (showDeleteButton) {
+                            IconButton(onClick = { onDeleteClick(review.id.toString()) }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Borrar", tint = MaterialTheme.colorScheme.error)
+                            }
                         }
                     }
                 }
@@ -87,7 +91,7 @@ fun ReviewCard(
             }
 
             Row(modifier = Modifier.padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = { onLikeClick(review.id, review.likedByMe) }) {
+                IconButton(onClick = { onLikeClick(review.id.toString(), review.likedByMe) }) {
                     Icon(
                         imageVector = if (review.likedByMe) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                         contentDescription = "Like",

@@ -1,13 +1,15 @@
 package com.example.santabarbaramobile.ui.auth.ViewModels
 
+import android.util.Base64
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.santabarbaramobile.data.remote.library.LibraryItemDto
-import com.example.santabarbaramobile.data.repository.FriendsRepository // <-- NUEVO
+import com.example.santabarbaramobile.data.repository.FriendsRepository
 import com.example.santabarbaramobile.data.repository.LibraryRepository
+import com.example.santabarbaramobile.data.repository.ModerationRepository
 import com.example.santabarbaramobile.data.repository.ShowRepository
 import com.example.santabarbaramobile.data.repository.UserRepository
 import com.example.santabarbaramobile.data.security.TokenManager
@@ -16,6 +18,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,6 +27,7 @@ class ProfileViewModel @Inject constructor(
     private val libraryRepository: LibraryRepository,
     private val showRepository: ShowRepository,
     private val friendsRepository: FriendsRepository,
+    private val moderationRepository: ModerationRepository,
     private val tokenManager: TokenManager
 ) : ViewModel() {
 
@@ -37,13 +41,26 @@ class ProfileViewModel @Inject constructor(
             uiState = uiState.copy(
                 isLoading = true,
                 isOwnProfile = isOwnProfile,
-                error = null
+                error = null,
+                banSuccessMessage = null
             )
 
             val token = tokenManager.getToken()
 
             if (token != null) {
                 val bearerToken = "Bearer $token"
+                var realVerificationStatus = false
+                var roleFromToken = "USER"
+
+                try {
+                    val parts = token.split(".")
+                    if (parts.size == 3) {
+                        val payload = String(Base64.decode(parts[1], Base64.URL_SAFE))
+                        val jsonObject = JSONObject(payload)
+                        realVerificationStatus = jsonObject.optBoolean("emailVerified", false)
+                        roleFromToken = jsonObject.optString("role", "USER")
+                    }
+                } catch (e: Exception) { /* Ignorar si falla el parseo */ }
 
                 val watchlistDeferred = if (isOwnProfile) {
                     async { libraryRepository.getMyWatchlist() }
@@ -63,7 +80,6 @@ class ProfileViewModel @Inject constructor(
                 var fetchedUsername = ""
                 var fetchedEmail = ""
                 var fetchedProfileImage: String? = null
-                var fetchedIsVerified = false
                 var profileError: String? = null
 
                 if (isOwnProfile) {
@@ -73,7 +89,6 @@ class ProfileViewModel @Inject constructor(
                             fetchedUsername = it.username
                             fetchedEmail = it.email ?: ""
                             fetchedProfileImage = it.profileImage
-                            fetchedIsVerified = it.isEmailVerified
                         }
                         .onFailure { profileError = it.message }
                 } else {
@@ -83,7 +98,6 @@ class ProfileViewModel @Inject constructor(
                             fetchedUsername = it.username
                             fetchedEmail = it.email ?: ""
                             fetchedProfileImage = it.profileImage
-                            fetchedIsVerified = false
                         }
                         .onFailure { profileError = it.message }
                 }
@@ -110,7 +124,10 @@ class ProfileViewModel @Inject constructor(
                         username = fetchedUsername,
                         email = fetchedEmail,
                         profileImage = fetchedProfileImage,
-                        isEmailVerified = fetchedIsVerified,
+
+                        isEmailVerified = if (isOwnProfile) realVerificationStatus else false,
+                        currentUserRole = roleFromToken,
+
                         watchlist = populatedWatchlist,
                         favorites = populatedFavorites,
                         targetAuthId = userId ?: "",
@@ -140,6 +157,28 @@ class ProfileViewModel @Inject constructor(
                 )
             } else item
         } catch (e: Exception) { item }
+    }
+
+    fun banCurrentUser() {
+        val targetId = uiState.targetAuthId
+        if (targetId.isEmpty()) return
+
+        viewModelScope.launch {
+            uiState = uiState.copy(isLoading = true)
+            moderationRepository.autoBanUser(targetId)
+                .onSuccess {
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        banSuccessMessage = "Usuario baneado exitosamente de la plataforma."
+                    )
+                }
+                .onFailure {
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        error = "Fallo al banear: ${it.message}"
+                    )
+                }
+        }
     }
 
     fun sendFriendRequest() {

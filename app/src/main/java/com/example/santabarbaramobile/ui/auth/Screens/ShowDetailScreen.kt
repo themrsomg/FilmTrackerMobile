@@ -54,11 +54,12 @@ fun ShowDetailScreen(
     reviewViewModel: ReviewViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
     onNavigateToShowDetail: (String) -> Unit,
-    onNavigateToReviewDetail: (String) -> Unit
+    onNavigateToReviewDetail: (String) -> Unit,
+    onNavigateToConfirm: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-
+    var showVerificationDialog by remember { mutableStateOf(false) }
     var showReviewDialog by remember { mutableStateOf(false) }
     var reviewToEdit by remember { mutableStateOf<ReviewDto?>(null) }
 
@@ -164,8 +165,12 @@ fun ShowDetailScreen(
                         ) {
                             Text("Reseñas de la Comunidad", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                             Button(onClick = {
-                                reviewToEdit = null
-                                showReviewDialog = true
+                                if (reviewViewModel.isEmailVerified) {
+                                    reviewToEdit = null
+                                    showReviewDialog = true
+                                } else {
+                                    showVerificationDialog = true
+                                }
                             }) {
                                 Text("Opinar")
                             }
@@ -179,10 +184,12 @@ fun ShowDetailScreen(
                     } else {
                         items(reviewViewModel.reviews) { review ->
                             val isOwner = reviewViewModel.currentUserId == review.authId
+                            val isAdmin = reviewViewModel.currentUserRole == "ADMIN"
 
                             ReviewCard(
                                 review = review,
                                 isOwner = isOwner,
+                                isAdmin = isAdmin,
                                 onEditClick = {
                                     reviewToEdit = it
                                     showReviewDialog = true
@@ -214,6 +221,25 @@ fun ShowDetailScreen(
                         reviewViewModel.updateReview(reviewToEdit!!.id, showId.toInt(), rating, title, content)
                     }
                     showReviewDialog = false
+                }
+            )
+        }
+
+        if (showVerificationDialog) {
+            AlertDialog(
+                onDismissRequest = { showVerificationDialog = false },
+                title = { Text("Verificación Requerida") },
+                text = { Text("Debes verificar tu correo electrónico para poder escribir reseñas y participar.") },
+                confirmButton = {
+                    Button(onClick = {
+                        showVerificationDialog = false
+                        onNavigateToConfirm(reviewViewModel.currentUserEmail)
+                    }) {
+                        Text("Verificar ahora")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showVerificationDialog = false }) { Text("Más tarde") }
                 }
             )
         }

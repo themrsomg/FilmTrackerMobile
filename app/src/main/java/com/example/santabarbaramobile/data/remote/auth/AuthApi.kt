@@ -1,7 +1,11 @@
 package com.example.santabarbaramobile.data.remote.auth
 
+import com.example.santabarbaramobile.data.model.AdminStatsResponse
+import com.example.santabarbaramobile.data.model.AuthStatsDto
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 
 interface AuthApi {
@@ -19,4 +23,7 @@ interface AuthApi {
 
     @POST("api/auth/verify-email")
     suspend fun verifyEmail(@Body request: VerifyEmailRequest): Response<Unit>
+
+    @GET("api/auth/admin/stats")
+    suspend fun getAuthStats(@Header("Authorization") token: String): Response<AdminStatsResponse<AuthStatsDto>>
 }

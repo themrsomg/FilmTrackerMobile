@@ -8,7 +8,8 @@ data class UserDto(
     val name: String? = null,
     val username: String,
     val email: String? = null,
-    val profileImage: String? = null
+    val profileImage: String? = null,
+    val role: String? = "USER"
 )
 
 data class UserSearchResponse(
