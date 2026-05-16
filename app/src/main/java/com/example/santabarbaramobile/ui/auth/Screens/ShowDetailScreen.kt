@@ -45,6 +45,7 @@ import com.example.santabarbaramobile.ui.auth.ViewModels.ReviewViewModel
 import com.example.santabarbaramobile.ui.auth.ViewModels.ShowDetailViewModel
 import com.example.santabarbaramobile.ui.components.ReviewCard
 import com.example.santabarbaramobile.ui.components.ReviewDialog
+import com.example.santabarbaramobile.ui.components.ReportDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,6 +63,8 @@ fun ShowDetailScreen(
     var showVerificationDialog by remember { mutableStateOf(false) }
     var showReviewDialog by remember { mutableStateOf(false) }
     var reviewToEdit by remember { mutableStateOf<ReviewDto?>(null) }
+    var showReportDialog by remember { mutableStateOf(false) }
+    var reportTargetId by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(showId) {
         viewModel.fetchFullShowDetails(showId)
@@ -201,7 +204,14 @@ fun ShowDetailScreen(
                                     reviewViewModel.toggleLike(id, liked)
                                 },
                                 onCardClick = {
-                                    onNavigateToReviewDetail(review.id)
+                                    onNavigateToReviewDetail(review.id.toString())
+                                },
+                                onReportClick = {
+                                    reportTargetId = review.id.toString()
+                                    showReportDialog = true
+                                },
+                                onRemoveImageClick = {
+                                    reviewViewModel.removeReviewImage(review.id.toString(), showId.toInt())
                                 }
                             )
                         }
@@ -218,13 +228,23 @@ fun ShowDetailScreen(
                     if (reviewToEdit == null) {
                         reviewViewModel.postReview(context, showId.toInt(), rating, title, content, uri)
                     } else {
-                        reviewViewModel.updateReview(reviewToEdit!!.id, showId.toInt(), rating, title, content)
+                        reviewViewModel.updateReview(reviewToEdit!!.id.toString(), showId.toInt(), rating, title, content)
                     }
                     showReviewDialog = false
                 }
             )
         }
-
+        if (showReportDialog && reportTargetId != null) {
+            ReportDialog(
+                targetType = "REVIEW",
+                targetId = reportTargetId!!,
+                onDismiss = { showReportDialog = false },
+                onSubmit = { _, id, reason, desc ->
+                    showReportDialog = false
+                    reviewViewModel.reportReview(id, reason, desc)
+                }
+            )
+        }
         if (showVerificationDialog) {
             AlertDialog(
                 onDismissRequest = { showVerificationDialog = false },

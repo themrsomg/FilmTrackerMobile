@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.santabarbaramobile.data.model.ReviewDto
+import com.example.santabarbaramobile.data.repository.ModerationRepository
 import com.example.santabarbaramobile.data.repository.ReviewsRepository
 import com.example.santabarbaramobile.data.repository.UserRepository
 import com.example.santabarbaramobile.data.security.TokenManager
@@ -26,6 +27,7 @@ import javax.inject.Inject
 class ReviewViewModel @Inject constructor(
     private val repository: ReviewsRepository,
     private val userRepository: UserRepository,
+    private val moderationRepository: ModerationRepository,
     private val tokenManager: TokenManager
 ) : ViewModel() {
 
@@ -158,5 +160,14 @@ class ReviewViewModel @Inject constructor(
         }
         val requestFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
         return MultipartBody.Part.createFormData("image", file.name, requestFile)
+    }
+
+    fun reportReview(reviewId: String, reasonCode: String, description: String) {
+        viewModelScope.launch {
+            moderationRepository.createReport("REVIEW", reviewId, reasonCode, description)
+        }
+    }
+
+    fun removeReviewImage(reviewId: String, tvmazeId: Int) {
     }
 }
