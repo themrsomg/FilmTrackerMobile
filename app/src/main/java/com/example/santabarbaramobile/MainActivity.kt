@@ -26,6 +26,7 @@ import com.example.santabarbaramobile.ui.auth.Screens.ConfirmAccountScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ForgotPasswordScreen
 import com.example.santabarbaramobile.ui.auth.Screens.LoginScreen
 import com.example.santabarbaramobile.ui.auth.Screens.MainHubScreen
+import com.example.santabarbaramobile.ui.auth.Screens.MyReportsScreen
 import com.example.santabarbaramobile.ui.auth.Screens.NotificationsScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ProfileScreen
 import com.example.santabarbaramobile.ui.auth.Screens.RegisterScreen
@@ -78,6 +79,12 @@ fun AppNavigation() {
                 onNavigateToForgot = {
                     navController.navigate(AuthScreen.ForgotPassword.route)
                 }
+            )
+        }
+
+        composable("my_reports") {
+            MyReportsScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
@@ -177,6 +184,9 @@ fun AppNavigation() {
                 },
                 onNavigateToConfirm = { email ->
                     navController.navigate("confirm_account/$email")
+                },
+                onNavigateToMyReports = {
+                    navController.navigate("my_reports")
                 }
             )
         }

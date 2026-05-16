@@ -50,4 +50,10 @@ interface ModerationApi {
     @GET("api/moderation/admin/stats")
     suspend fun getModerationStats(@Header("Authorization") token: String):
             Response<AdminStatsResponse<ModerationStatsDto>>
+
+    @GET("api/moderation/reports/my")
+    suspend fun getMyReports(
+        @Header("Authorization") token: String,
+        @Query("page") page: Int = 1
+    ): Response<AdminStatsResponse<AdminReportResponse>>
 }

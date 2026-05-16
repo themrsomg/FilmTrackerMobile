@@ -25,7 +25,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Verified
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
@@ -69,6 +69,7 @@ fun ProfileScreen(
     onNavigateBack: () -> Unit,
     onNavigateToFriendsManager: () -> Unit,
     onLogout: () -> Unit,
+    onNavigateToMyReports: () -> Unit,
     onNavigateToConfirm: (String) -> Unit
 ) {
     val state = viewModel.uiState
@@ -100,6 +101,7 @@ fun ProfileScreen(
                     state = state,
                     onLogout = onLogout,
                     onNavigateToFriendsManager = onNavigateToFriendsManager,
+                    onNavigateToMyReports = onNavigateToMyReports,
                     onAddFriend = { viewModel.sendFriendRequest() },
                     onRemoveFriend = { viewModel.removeFriend() },
                     onNavigateToConfirm = onNavigateToConfirm,
@@ -118,6 +120,7 @@ private fun ProfileContent(
     state: ProfileState,
     onLogout: () -> Unit,
     onNavigateToFriendsManager: () -> Unit,
+    onNavigateToMyReports: () -> Unit,
     onAddFriend: () -> Unit,
     onRemoveFriend: () -> Unit,
     onNavigateToConfirm: (String) -> Unit,
@@ -357,6 +360,17 @@ private fun ProfileContent(
                 Icon(Icons.Default.People, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Gestor de Amistades")
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = onNavigateToMyReports,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF333333)),
+                modifier = Modifier.fillMaxWidth(0.7f)
+            ) {
+                Icon(Icons.Outlined.Flag, contentDescription = null, tint = Color.White)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Mis Reportes", color = Color.White)
             }
         }
 

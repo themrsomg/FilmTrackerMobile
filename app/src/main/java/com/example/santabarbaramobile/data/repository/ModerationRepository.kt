@@ -67,4 +67,19 @@ class ModerationRepository @Inject constructor(
             Result.failure(e)
         }
     }
+
+    suspend fun getMyReports(page: Int = 1): Result<AdminReportResponse> = withContext(Dispatchers.IO) {
+        try {
+            val token = "Bearer ${tokenManager.getToken()}"
+            val res = api.getMyReports(token, page)
+
+            if (res.isSuccessful && res.body()?.data != null) {
+                Result.success(res.body()!!.data!!)
+            } else {
+                Result.failure(Exception("Error al cargar tus reportes (${res.code()})"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
