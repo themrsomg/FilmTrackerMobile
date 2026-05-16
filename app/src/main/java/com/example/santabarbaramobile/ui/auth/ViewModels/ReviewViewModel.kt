@@ -8,7 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.santabarbaramobile.data.model.ReviewDto
+import com.example.santabarbaramobile.data.model.dtos.ReviewDto
 import com.example.santabarbaramobile.data.repository.ModerationRepository
 import com.example.santabarbaramobile.data.repository.ReviewsRepository
 import com.example.santabarbaramobile.data.repository.UserRepository

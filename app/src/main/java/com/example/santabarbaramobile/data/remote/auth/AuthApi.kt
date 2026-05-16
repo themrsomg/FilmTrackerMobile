@@ -1,10 +1,18 @@
 package com.example.santabarbaramobile.data.remote.auth
 
-import com.example.santabarbaramobile.data.model.AccountStatusResponse
-import com.example.santabarbaramobile.data.model.AdminStatsResponse
-import com.example.santabarbaramobile.data.model.AuthStatsDto
-import com.example.santabarbaramobile.data.model.BanRequestDto
-import com.example.santabarbaramobile.data.model.SuspendRequestDto
+import com.example.santabarbaramobile.data.model.dtos.AccountStatusResponse
+import com.example.santabarbaramobile.data.model.models.AdminStatsResponse
+import com.example.santabarbaramobile.data.model.models.AuthStatsDto
+import com.example.santabarbaramobile.data.model.dtos.BanRequestDto
+import com.example.santabarbaramobile.data.model.dtos.SuspendRequestDto
+import com.example.santabarbaramobile.data.model.models.ApiResponse
+import com.example.santabarbaramobile.data.model.models.ConfirmAccountRequest
+import com.example.santabarbaramobile.data.model.models.ForgotPasswordRequest
+import com.example.santabarbaramobile.data.model.models.LoginRequest
+import com.example.santabarbaramobile.data.model.models.LoginResponse
+import com.example.santabarbaramobile.data.model.models.RegisterRequest
+import com.example.santabarbaramobile.data.model.models.RegisterResponse
+import com.example.santabarbaramobile.data.model.models.VerifyEmailRequest
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET

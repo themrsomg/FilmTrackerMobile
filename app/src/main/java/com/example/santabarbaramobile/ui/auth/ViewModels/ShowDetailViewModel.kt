@@ -3,7 +3,7 @@ package com.example.santabarbaramobile.ui.auth.ViewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.santabarbaramobile.data.remote.SantaBarbaraApi
-import com.example.santabarbaramobile.data.remote.library.LibraryRequest
+import com.example.santabarbaramobile.data.model.dtos.LibraryRequest
 import com.example.santabarbaramobile.data.remote.library.UserLibraryApi
 import com.example.santabarbaramobile.data.security.TokenManager
 import com.example.santabarbaramobile.ui.auth.States.ShowDetailState

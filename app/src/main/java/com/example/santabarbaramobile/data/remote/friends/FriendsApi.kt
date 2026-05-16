@@ -1,5 +1,10 @@
 package com.example.santabarbaramobile.data.remote.friends
 
+import com.example.santabarbaramobile.data.model.models.FriendPaginationResponse
+import com.example.santabarbaramobile.data.model.models.FriendRequestPaginationResponse
+import com.example.santabarbaramobile.data.model.models.FriendStatusResponse
+import com.example.santabarbaramobile.data.model.models.FriendsSummaryDto
+import com.example.santabarbaramobile.data.model.models.SendFriendRequest
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE

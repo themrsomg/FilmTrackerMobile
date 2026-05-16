@@ -1,4 +1,4 @@
-package com.example.santabarbaramobile.data.model
+package com.example.santabarbaramobile.data.model.models
 
 data class AuthStatsDto(
     val totalUsers: Int? = 0,

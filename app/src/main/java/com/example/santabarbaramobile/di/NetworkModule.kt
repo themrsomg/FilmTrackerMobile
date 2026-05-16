@@ -10,6 +10,7 @@ import com.example.santabarbaramobile.data.remote.moderation.ModerationApi
 import com.example.santabarbaramobile.data.remote.notifications.NotificationsApi
 import com.example.santabarbaramobile.data.remote.reviews.CommentsApi
 import com.example.santabarbaramobile.data.remote.reviews.ReviewsApi
+import com.example.santabarbaramobile.data.remote.reviews.LeaderboardsApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -195,6 +196,12 @@ object NetworkModule {
     @Singleton
     fun provideCommentsApi(@ReviewsRetrofit retrofit: Retrofit): CommentsApi {
         return retrofit.create(CommentsApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideLeaderboardsApi(@ReviewsRetrofit retrofit: Retrofit): LeaderboardsApi {
+        return retrofit.create(LeaderboardsApi::class.java)
     }
 
     @Provides

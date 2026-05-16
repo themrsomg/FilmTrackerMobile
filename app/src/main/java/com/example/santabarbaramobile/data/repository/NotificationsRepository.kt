@@ -1,6 +1,6 @@
 package com.example.santabarbaramobile.data.repository
 
-import com.example.santabarbaramobile.data.model.NotificationDto
+import com.example.santabarbaramobile.data.model.dtos.NotificationDto
 import com.example.santabarbaramobile.data.remote.notifications.NotificationsApi
 import com.example.santabarbaramobile.data.security.TokenManager
 import kotlinx.coroutines.Dispatchers

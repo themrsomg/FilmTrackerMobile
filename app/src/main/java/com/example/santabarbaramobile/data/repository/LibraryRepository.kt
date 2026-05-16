@@ -1,6 +1,6 @@
 package com.example.santabarbaramobile.data.repository
 
-import com.example.santabarbaramobile.data.remote.library.LibraryItemDto
+import com.example.santabarbaramobile.data.model.models.LibraryItemDto
 import com.example.santabarbaramobile.data.remote.library.UserLibraryApi
 import com.example.santabarbaramobile.data.security.TokenManager
 import kotlinx.coroutines.Dispatchers

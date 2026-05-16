@@ -1,7 +1,7 @@
 package com.example.santabarbaramobile.data.remote.reviews
 
-import com.example.santabarbaramobile.data.model.CommentPaginationResponse
-import com.example.santabarbaramobile.data.model.SingleCommentResponse
+import com.example.santabarbaramobile.data.model.dtos.CommentPaginationResponse
+import com.example.santabarbaramobile.data.model.dtos.SingleCommentResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response

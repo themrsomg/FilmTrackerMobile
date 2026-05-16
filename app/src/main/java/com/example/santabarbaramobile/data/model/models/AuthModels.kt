@@ -1,4 +1,4 @@
-package com.example.santabarbaramobile.data.remote.auth
+package com.example.santabarbaramobile.data.model.models
 
 import com.google.gson.annotations.SerializedName
 

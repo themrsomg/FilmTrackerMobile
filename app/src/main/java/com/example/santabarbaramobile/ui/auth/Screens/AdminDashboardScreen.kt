@@ -21,7 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.santabarbaramobile.data.model.AdminReportDto
+import com.example.santabarbaramobile.data.model.models.AdminReportDto
 import com.example.santabarbaramobile.ui.auth.ViewModels.AdminDashboardViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)

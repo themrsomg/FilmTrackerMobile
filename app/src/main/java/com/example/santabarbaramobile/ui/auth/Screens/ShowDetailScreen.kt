@@ -36,11 +36,11 @@ import androidx.core.text.HtmlCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.example.santabarbaramobile.data.model.CastMember
-import com.example.santabarbaramobile.data.model.Episode
-import com.example.santabarbaramobile.data.model.ReviewDto
-import com.example.santabarbaramobile.data.model.Season
-import com.example.santabarbaramobile.data.model.Show
+import com.example.santabarbaramobile.data.model.models.CastMember
+import com.example.santabarbaramobile.data.model.models.Episode
+import com.example.santabarbaramobile.data.model.dtos.ReviewDto
+import com.example.santabarbaramobile.data.model.models.Season
+import com.example.santabarbaramobile.data.model.models.Show
 import com.example.santabarbaramobile.ui.auth.ViewModels.ReviewViewModel
 import com.example.santabarbaramobile.ui.auth.ViewModels.ShowDetailViewModel
 import com.example.santabarbaramobile.ui.components.ReviewCard

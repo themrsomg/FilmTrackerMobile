@@ -24,11 +24,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-import com.example.santabarbaramobile.data.model.NotificationDto
+import com.example.santabarbaramobile.data.model.dtos.NotificationDto
 import com.example.santabarbaramobile.ui.auth.ViewModels.NotificationsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)

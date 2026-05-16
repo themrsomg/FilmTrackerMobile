@@ -3,7 +3,7 @@ package com.example.santabarbaramobile.ui.auth.ViewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.santabarbaramobile.data.repository.UserRepository
-import com.example.santabarbaramobile.data.model.UserDto
+import com.example.santabarbaramobile.data.model.dtos.UserDto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

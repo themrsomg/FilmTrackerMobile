@@ -1,6 +1,7 @@
 package com.example.santabarbaramobile.data.repository
 
-import com.example.santabarbaramobile.data.remote.auth.UserResponse
+import com.example.santabarbaramobile.data.model.dtos.UserDto
+import com.example.santabarbaramobile.data.model.models.UserResponse
 import com.example.santabarbaramobile.data.remote.users.UsersApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -32,7 +33,7 @@ class UserRepository @Inject constructor(
         }
     }
 
-    suspend fun searchUserByUsername(username: String): Result<com.example.santabarbaramobile.data.model.UserDto> = withContext(Dispatchers.IO) {
+    suspend fun searchUserByUsername(username: String): Result<UserDto> = withContext(Dispatchers.IO) {
         try {
             val formattedUsername = username.trim().replace(" ", "_")
 
@@ -53,7 +54,7 @@ class UserRepository @Inject constructor(
         }
     }
 
-    suspend fun getUserById(authId: String): Result<com.example.santabarbaramobile.data.model.UserDto> = withContext(Dispatchers.IO) {
+    suspend fun getUserById(authId: String): Result<UserDto> = withContext(Dispatchers.IO) {
         try {
             val response = usersApi.getUserById(authId)
             if (response.isSuccessful && response.body()?.data != null) {

@@ -1,9 +1,10 @@
 package com.example.santabarbaramobile.data.remote.moderation
 
-import com.example.santabarbaramobile.data.model.AdminActionRequestDto
-import com.example.santabarbaramobile.data.model.AdminStatsResponse
-import com.example.santabarbaramobile.data.model.AdminReportResponse
-import com.example.santabarbaramobile.data.model.ModerationStatsDto
+import com.example.santabarbaramobile.data.model.models.AdminActionRequestDto
+import com.example.santabarbaramobile.data.model.models.AdminStatsResponse
+import com.example.santabarbaramobile.data.model.models.AdminReportResponse
+import com.example.santabarbaramobile.data.model.models.ModerationStatsDto
+import com.example.santabarbaramobile.data.model.models.ReportRequestDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -11,13 +12,6 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
-
-data class ReportRequestDto(
-    val targetType: String,
-    val targetId: String,
-    val reason: String,
-    val description: String
-)
 
 interface ModerationApi {
     @POST("api/moderation/reports")

@@ -1,9 +1,9 @@
 package com.example.santabarbaramobile.ui.auth.States
 
-import com.example.santabarbaramobile.data.model.CastMember
-import com.example.santabarbaramobile.data.model.Episode
-import com.example.santabarbaramobile.data.model.Season
-import com.example.santabarbaramobile.data.model.Show
+import com.example.santabarbaramobile.data.model.models.CastMember
+import com.example.santabarbaramobile.data.model.models.Episode
+import com.example.santabarbaramobile.data.model.models.Season
+import com.example.santabarbaramobile.data.model.models.Show
 
 data class ShowDetailState(
     val isLoading: Boolean = true,

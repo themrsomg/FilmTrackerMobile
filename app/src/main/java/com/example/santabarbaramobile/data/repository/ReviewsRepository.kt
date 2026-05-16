@@ -1,6 +1,8 @@
 package com.example.santabarbaramobile.data.repository
 
-import com.example.santabarbaramobile.data.model.*
+import com.example.santabarbaramobile.data.model.dtos.ReviewDto
+import com.example.santabarbaramobile.data.model.dtos.ReviewPaginationResponse
+import com.example.santabarbaramobile.data.model.dtos.UpdateReviewRequest
 import com.example.santabarbaramobile.data.remote.reviews.ReviewsApi
 import com.example.santabarbaramobile.data.security.TokenManager
 import kotlinx.coroutines.Dispatchers

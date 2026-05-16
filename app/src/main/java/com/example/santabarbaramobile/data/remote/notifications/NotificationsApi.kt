@@ -1,7 +1,7 @@
 package com.example.santabarbaramobile.data.remote.notifications
 
-import com.example.santabarbaramobile.data.model.NotificationPaginationResponse
-import com.example.santabarbaramobile.data.model.UnreadCountResponse
+import com.example.santabarbaramobile.data.model.dtos.NotificationPaginationResponse
+import com.example.santabarbaramobile.data.model.dtos.UnreadCountResponse
 import retrofit2.Response
 import retrofit2.http.*
 

@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.santabarbaramobile.data.remote.library.LibraryItemDto
+import com.example.santabarbaramobile.data.model.models.LibraryItemDto
 import com.example.santabarbaramobile.data.repository.AuthRepository
 import com.example.santabarbaramobile.data.repository.FriendsRepository
 import com.example.santabarbaramobile.data.repository.LibraryRepository

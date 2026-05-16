@@ -1,7 +1,7 @@
 package com.example.santabarbaramobile.data.repository
 
-import com.example.santabarbaramobile.data.model.HomeResponse
-import com.example.santabarbaramobile.data.model.Show
+import com.example.santabarbaramobile.data.model.models.HomeResponse
+import com.example.santabarbaramobile.data.model.models.Show
 import com.example.santabarbaramobile.data.remote.SantaBarbaraApi
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers

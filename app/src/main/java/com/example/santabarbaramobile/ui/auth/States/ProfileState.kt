@@ -1,6 +1,6 @@
 package com.example.santabarbaramobile.ui.auth.States
 
-import com.example.santabarbaramobile.data.remote.library.LibraryItemDto
+import com.example.santabarbaramobile.data.model.models.LibraryItemDto
 
 data class ProfileState(
     val name: String = "",

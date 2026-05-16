@@ -20,7 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.example.santabarbaramobile.data.model.UserDto
+import com.example.santabarbaramobile.data.model.dtos.UserDto
 import com.example.santabarbaramobile.ui.auth.ViewModels.SearchUserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)

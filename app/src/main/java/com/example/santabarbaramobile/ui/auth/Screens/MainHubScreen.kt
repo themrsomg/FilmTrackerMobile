@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.EmojiEvents // <-- ÍCONO DEL TROFEO
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
@@ -35,7 +36,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.santabarbaramobile.R
-import com.example.santabarbaramobile.data.model.Show
+import com.example.santabarbaramobile.data.model.models.Show
 import com.example.santabarbaramobile.ui.auth.States.HomeUiState
 import com.example.santabarbaramobile.ui.auth.ViewModels.MainHubViewModel
 import com.example.santabarbaramobile.ui.auth.ViewModels.NotificationsViewModel
@@ -49,7 +50,8 @@ fun MainHubScreen(
     onNavigateToOtherProfile: (String, String) -> Unit,
     onNavigateToShowDetail: (String) -> Unit,
     onNavigateToNotifications: () -> Unit,
-    onNavigateToAdminPanel: () -> Unit
+    onNavigateToAdminPanel: () -> Unit,
+    onNavigateToLeaderboards: () -> Unit
 ) {
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
@@ -67,7 +69,14 @@ fun MainHubScreen(
                 CenterAlignedTopAppBar(
                     title = { Text("FilmTracker", fontWeight = FontWeight.Bold) },
                     actions = {
-
+                        IconButton(onClick = onNavigateToLeaderboards) {
+                            Icon(
+                                imageVector = Icons.Default.EmojiEvents,
+                                contentDescription = "Salón de la Fama",
+                                modifier = Modifier.size(28.dp),
+                                tint = Color(0xFFFFD700)
+                            )
+                        }
                         if (viewModel.currentUserRole == "ADMIN") {
                             IconButton(onClick = onNavigateToAdminPanel) {
                                 Icon(

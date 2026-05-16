@@ -1,9 +1,9 @@
 package com.example.santabarbaramobile.data.repository
 
-import com.example.santabarbaramobile.data.remote.friends.FriendPaginationResponse
-import com.example.santabarbaramobile.data.remote.friends.FriendRequestPaginationResponse
-import com.example.santabarbaramobile.data.remote.friends.FriendStatusResponse
-import com.example.santabarbaramobile.data.remote.friends.SendFriendRequest
+import com.example.santabarbaramobile.data.model.models.FriendPaginationResponse
+import com.example.santabarbaramobile.data.model.models.FriendRequestPaginationResponse
+import com.example.santabarbaramobile.data.model.models.FriendStatusResponse
+import com.example.santabarbaramobile.data.model.models.SendFriendRequest
 import com.example.santabarbaramobile.data.remote.friends.FriendsApi
 import com.example.santabarbaramobile.data.security.TokenManager
 import kotlinx.coroutines.Dispatchers

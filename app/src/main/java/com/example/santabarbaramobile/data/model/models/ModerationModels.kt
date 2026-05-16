@@ -1,5 +1,6 @@
-package com.example.santabarbaramobile.data.model
+package com.example.santabarbaramobile.data.model.models
 
+import com.example.santabarbaramobile.data.model.dtos.PaginationDto
 import com.google.gson.annotations.SerializedName
 
 data class ReportRequestDto(

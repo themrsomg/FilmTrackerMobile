@@ -1,15 +1,12 @@
 package com.example.santabarbaramobile.data.remote
 
-import com.example.santabarbaramobile.data.model.HomeResponse
-import com.example.santabarbaramobile.data.model.Season
-import com.example.santabarbaramobile.data.model.Show
-import com.example.santabarbaramobile.data.model.Episode
-import com.example.santabarbaramobile.data.model.CastMember
-import com.example.santabarbaramobile.data.model.CastResponse
-import com.example.santabarbaramobile.data.model.EpisodeResponse
-import com.example.santabarbaramobile.data.model.GenreResponse
-import com.example.santabarbaramobile.data.model.SearchResultItem
-import com.example.santabarbaramobile.data.model.SeasonResponse
+import com.example.santabarbaramobile.data.model.models.HomeResponse
+import com.example.santabarbaramobile.data.model.models.Show
+import com.example.santabarbaramobile.data.model.models.CastResponse
+import com.example.santabarbaramobile.data.model.models.EpisodeResponse
+import com.example.santabarbaramobile.data.model.models.GenreResponse
+import com.example.santabarbaramobile.data.model.models.SearchResultItem
+import com.example.santabarbaramobile.data.model.models.SeasonResponse
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.Response

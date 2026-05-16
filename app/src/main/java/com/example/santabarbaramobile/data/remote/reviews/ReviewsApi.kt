@@ -1,6 +1,11 @@
 package com.example.santabarbaramobile.data.remote.reviews
 
-import com.example.santabarbaramobile.data.model.*
+import com.example.santabarbaramobile.data.model.dtos.ReviewPaginationResponse
+import com.example.santabarbaramobile.data.model.dtos.ReviewSummaryDto
+import com.example.santabarbaramobile.data.model.dtos.SingleReviewResponse
+import com.example.santabarbaramobile.data.model.dtos.UpdateReviewRequest
+import com.example.santabarbaramobile.data.model.models.AdminStatsResponse
+import com.example.santabarbaramobile.data.model.models.ReviewStatsDto
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response

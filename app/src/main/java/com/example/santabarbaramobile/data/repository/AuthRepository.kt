@@ -1,14 +1,15 @@
 package com.example.santabarbaramobile.data.repository
 
-import com.example.santabarbaramobile.data.model.AccountStatusDto
-import com.example.santabarbaramobile.data.model.BanRequestDto
-import com.example.santabarbaramobile.data.model.SuspendRequestDto
-import com.example.santabarbaramobile.data.remote.auth.LoginRequest
-import com.example.santabarbaramobile.data.remote.auth.LoginResponse
-import com.example.santabarbaramobile.data.remote.auth.ForgotPasswordRequest
-import com.example.santabarbaramobile.data.remote.auth.RegisterRequest
-import com.example.santabarbaramobile.data.remote.auth.RegisterResponse
-import com.example.santabarbaramobile.data.remote.auth.UserResponse
+import com.example.santabarbaramobile.data.model.dtos.AccountStatusDto
+import com.example.santabarbaramobile.data.model.dtos.BanRequestDto
+import com.example.santabarbaramobile.data.model.dtos.SuspendRequestDto
+import com.example.santabarbaramobile.data.model.models.LoginRequest
+import com.example.santabarbaramobile.data.model.models.LoginResponse
+import com.example.santabarbaramobile.data.model.models.ForgotPasswordRequest
+import com.example.santabarbaramobile.data.model.models.RegisterRequest
+import com.example.santabarbaramobile.data.model.models.RegisterResponse
+import com.example.santabarbaramobile.data.model.models.UserResponse
+import com.example.santabarbaramobile.data.model.models.VerifyEmailRequest
 import com.example.santabarbaramobile.data.remote.auth.AuthApi
 import com.example.santabarbaramobile.data.remote.users.UsersApi
 import com.example.santabarbaramobile.data.security.TokenManager
@@ -100,7 +101,7 @@ class AuthRepository @Inject constructor(
 
     suspend fun verifyEmail(email: String, code: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val request = com.example.santabarbaramobile.data.remote.auth.VerifyEmailRequest(email, code)
+            val request = VerifyEmailRequest(email, code)
             val response = authApi.verifyEmail(request)
 
             if (response.isSuccessful) {

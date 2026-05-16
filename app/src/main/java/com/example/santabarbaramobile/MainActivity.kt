@@ -24,6 +24,7 @@ import androidx.navigation.navArgument
 import com.example.santabarbaramobile.ui.auth.Screens.AdminDashboardScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ConfirmAccountScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ForgotPasswordScreen
+import com.example.santabarbaramobile.ui.auth.Screens.LeaderboardsScreen
 import com.example.santabarbaramobile.ui.auth.Screens.LoginScreen
 import com.example.santabarbaramobile.ui.auth.Screens.MainHubScreen
 import com.example.santabarbaramobile.ui.auth.Screens.MyReportsScreen
@@ -148,6 +149,9 @@ fun AppNavigation() {
                 },
                 onNavigateToAdminPanel = {
                     navController.navigate("admin_dashboard")
+                },
+                onNavigateToLeaderboards = {
+                    navController.navigate("leaderboards")
                 }
             )
         }
@@ -198,6 +202,20 @@ fun AppNavigation() {
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToProfile = { userId, username ->
                     navController.navigate("profile?userId=$userId&username=$username")
+                }
+            )
+        }
+
+        composable("leaderboards") {
+            LeaderboardsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onUserClick = { userId, username ->
+                    navController.navigate("profile?userId=$userId&username=$username")
+                },
+                onShowClick = { showId ->
+                    navController.navigate("show_detail/$showId")
                 }
             )
         }

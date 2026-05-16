@@ -5,7 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.santabarbaramobile.data.model.UserDto
+import com.example.santabarbaramobile.data.model.dtos.UserDto
 import com.example.santabarbaramobile.data.repository.FriendsRepository
 import com.example.santabarbaramobile.data.repository.UserRepository
 import com.example.santabarbaramobile.data.security.TokenManager

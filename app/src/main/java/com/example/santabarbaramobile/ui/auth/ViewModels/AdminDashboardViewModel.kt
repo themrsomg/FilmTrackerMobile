@@ -5,7 +5,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.santabarbaramobile.data.model.*
+import com.example.santabarbaramobile.data.model.models.AdminReportDto
+import com.example.santabarbaramobile.data.model.models.AuthStatsDto
+import com.example.santabarbaramobile.data.model.models.ModerationStatsDto
+import com.example.santabarbaramobile.data.model.models.ReviewStatsDto
 import com.example.santabarbaramobile.data.repository.AdminDashboardRepository
 import com.example.santabarbaramobile.data.repository.ModerationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel

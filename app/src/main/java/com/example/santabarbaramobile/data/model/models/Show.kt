@@ -1,4 +1,4 @@
-package com.example.santabarbaramobile.data.model
+package com.example.santabarbaramobile.data.model.models
 
 data class HomeResponse(
     val featured: List<Show> = emptyList(),

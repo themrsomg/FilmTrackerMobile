@@ -1,9 +1,9 @@
 package com.example.santabarbaramobile.data.repository
 
-import com.example.santabarbaramobile.data.model.AdminReportResponse
-import com.example.santabarbaramobile.data.model.AdminActionRequestDto
+import com.example.santabarbaramobile.data.model.models.AdminReportResponse
+import com.example.santabarbaramobile.data.model.models.AdminActionRequestDto
+import com.example.santabarbaramobile.data.model.models.ReportRequestDto
 import com.example.santabarbaramobile.data.remote.moderation.ModerationApi
-import com.example.santabarbaramobile.data.remote.moderation.ReportRequestDto
 import com.example.santabarbaramobile.data.security.TokenManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

@@ -1,6 +1,5 @@
 package com.example.santabarbaramobile.ui.auth.Screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -25,7 +24,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.example.santabarbaramobile.data.model.UserDto
+import com.example.santabarbaramobile.data.model.dtos.UserDto
 import com.example.santabarbaramobile.ui.auth.ViewModels.FriendsManagerViewModel
 import com.example.santabarbaramobile.ui.auth.ViewModels.RequestUIItem
 

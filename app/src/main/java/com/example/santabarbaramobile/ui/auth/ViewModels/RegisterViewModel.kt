@@ -3,7 +3,7 @@ package com.example.santabarbaramobile.ui.auth.ViewModels
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.santabarbaramobile.data.remote.auth.RegisterRequest
+import com.example.santabarbaramobile.data.model.models.RegisterRequest
 import com.example.santabarbaramobile.data.repository.AuthRepository
 import com.example.santabarbaramobile.ui.auth.States.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel

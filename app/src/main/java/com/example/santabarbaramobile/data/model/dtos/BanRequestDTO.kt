@@ -1,4 +1,4 @@
-package com.example.santabarbaramobile.data.model
+package com.example.santabarbaramobile.data.model.dtos
 
 data class SuspendRequestDto(
     val suspendedUntil: String,

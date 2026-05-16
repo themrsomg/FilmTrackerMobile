@@ -1,6 +1,9 @@
 package com.example.santabarbaramobile.data.remote.library
 
-import com.google.gson.annotations.SerializedName
+import com.example.santabarbaramobile.data.model.dtos.CheckResponse
+import com.example.santabarbaramobile.data.model.dtos.FavoritesResponse
+import com.example.santabarbaramobile.data.model.dtos.LibraryRequest
+import com.example.santabarbaramobile.data.model.models.LibraryListResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -9,22 +12,6 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
-
-data class LibraryRequest(
-    val tvmazeId: Int
-)
-
-data class CheckResponse(
-    val exists: Boolean
-)
-
-data class FavoriteItem(
-    val tvmaze_id: Int
-)
-
-data class FavoritesResponse(
-    val data: List<FavoriteItem>
-)
 
 interface UserLibraryApi {
     @POST("api/favorites")

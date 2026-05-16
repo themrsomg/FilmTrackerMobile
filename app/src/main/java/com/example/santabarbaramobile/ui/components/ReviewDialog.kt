@@ -24,7 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.santabarbaramobile.data.model.ReviewDto
+import com.example.santabarbaramobile.data.model.dtos.ReviewDto
 
 @Composable
 fun ReviewDialog(

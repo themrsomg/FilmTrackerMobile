@@ -57,7 +57,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.example.santabarbaramobile.data.remote.library.LibraryItemDto
+import com.example.santabarbaramobile.data.model.models.LibraryItemDto
 import com.example.santabarbaramobile.ui.auth.States.ProfileState
 import com.example.santabarbaramobile.ui.auth.ViewModels.ProfileViewModel
 import com.example.santabarbaramobile.ui.components.ReportDialog
