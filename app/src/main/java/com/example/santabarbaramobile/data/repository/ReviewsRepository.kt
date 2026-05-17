@@ -100,4 +100,20 @@ class ReviewsRepository @Inject constructor(
             else Result.failure(Exception("Error al borrar la reseña"))
         } catch (e: Exception) { Result.failure(e) }
     }
+
+    suspend fun getReviewById(reviewId: String): Result<ReviewDto> = withContext(Dispatchers.IO) {
+        try {
+            val token = tokenManager.getToken()?.let { "Bearer $it" }
+            val res = api.getReviewById(token, reviewId)
+
+            if (res.isSuccessful && res.body() != null) {
+                val responseBody = res.body()!!
+                Result.success(responseBody.review)
+            } else {
+                Result.failure(Exception("Error al cargar la reseña"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

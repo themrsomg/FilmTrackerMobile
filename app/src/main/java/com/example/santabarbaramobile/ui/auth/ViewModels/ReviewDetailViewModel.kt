@@ -2,32 +2,47 @@ package com.example.santabarbaramobile.ui.auth.ViewModels
 
 import android.content.Context
 import android.net.Uri
+import android.util.Base64
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.santabarbaramobile.data.model.dtos.CommentDto
+import com.example.santabarbaramobile.data.model.dtos.ReviewDto
+import com.example.santabarbaramobile.data.model.dtos.UserDto
 import com.example.santabarbaramobile.data.repository.CommentsRepository
+import com.example.santabarbaramobile.data.repository.ModerationRepository
+import com.example.santabarbaramobile.data.repository.ReviewsRepository
 import com.example.santabarbaramobile.data.repository.UserRepository
 import com.example.santabarbaramobile.data.security.TokenManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import javax.inject.Inject
 
+data class CommentUIItem(val comment: CommentDto, val user: UserDto?)
+
 @HiltViewModel
 class ReviewDetailViewModel @Inject constructor(
-    private val repository: CommentsRepository,
+    private val commentsRepository: CommentsRepository,
+    private val reviewsRepository: ReviewsRepository,
     private val userRepository: UserRepository,
+    private val moderationRepository: ModerationRepository,
     private val tokenManager: TokenManager
 ) : ViewModel() {
 
-    var comments by mutableStateOf<List<CommentDto>>(emptyList())
+    var mainReview by mutableStateOf<ReviewDto?>(null)
+        private set
+
+    var commentsUI by mutableStateOf<List<CommentUIItem>>(emptyList())
         private set
 
     var isLoading by mutableStateOf(false)
@@ -45,30 +60,45 @@ class ReviewDetailViewModel @Inject constructor(
     var isEmailVerified by mutableStateOf(false)
         private set
 
-    var currentUserEmail by mutableStateOf("")
-        private set
-
     init { loadCurrentUserId() }
 
     private fun loadCurrentUserId() {
         viewModelScope.launch {
             val token = tokenManager.getToken()
             if (token != null) {
+                var verified = false
+                try {
+                    val parts = token.split(".")
+                    if (parts.size == 3) {
+                        val payload = String(Base64.decode(parts[1], Base64.URL_SAFE))
+                        verified = JSONObject(payload).optBoolean("emailVerified", false)
+                    }
+                } catch (e: Exception) { }
+
                 userRepository.getUserProfile("Bearer $token").onSuccess { profile ->
                     currentUserId = profile.authId
                     currentUserRole = profile.role
-                    isEmailVerified = profile.isEmailVerified
-                    currentUserEmail = profile.email
+                    isEmailVerified = verified
                 }
             }
         }
     }
 
-    fun loadComments(reviewId: String) {
+    fun loadData(reviewId: String) {
         viewModelScope.launch {
             isLoading = true
-            repository.getComments(reviewId)
-                .onSuccess { comments = it }
+
+            reviewsRepository.getReviewById(reviewId).onSuccess { mainReview = it }
+            commentsRepository.getComments(reviewId)
+                .onSuccess { commentsList ->
+                    val hydrated = commentsList.map { comment ->
+                        async {
+                            val user = userRepository.getUserById(comment.authId ?: "").getOrNull()
+                            CommentUIItem(comment, user)
+                        }
+                    }.awaitAll()
+                    commentsUI = hydrated
+                }
                 .onFailure { errorMessage = it.message }
             isLoading = false
         }
@@ -81,8 +111,8 @@ class ReviewDetailViewModel @Inject constructor(
             isLoading = true
             val imagePart = imageUri?.let { uriToMultipart(context, it) }
 
-            repository.createComment(reviewId, content, imagePart)
-                .onSuccess { loadComments(reviewId) }
+            commentsRepository.createComment(reviewId, content, imagePart)
+                .onSuccess { loadData(reviewId) }
                 .onFailure { errorMessage = it.message }
             isLoading = false
         }
@@ -90,9 +120,22 @@ class ReviewDetailViewModel @Inject constructor(
 
     fun deleteComment(commentId: String, reviewId: String) {
         viewModelScope.launch {
-            repository.deleteComment(commentId)
-                .onSuccess { loadComments(reviewId) }
+            commentsRepository.deleteComment(commentId)
+                .onSuccess { loadData(reviewId) }
                 .onFailure { errorMessage = it.message }
+        }
+    }
+
+    fun removeCommentImage(commentId: String, reviewId: String) {
+        viewModelScope.launch {
+            commentsRepository.removeCommentImage(commentId)
+                .onSuccess { loadData(reviewId) }
+        }
+    }
+
+    fun reportComment(commentId: String, reason: String, desc: String) {
+        viewModelScope.launch {
+            moderationRepository.createReport("COMMENT", commentId, reason, desc)
         }
     }
 

@@ -68,5 +68,13 @@ interface ReviewsApi {
     ): Response<SingleReviewResponse>
 
     @GET("api/reviews/admin/stats")
-    suspend fun getReviewStats(@Header("Authorization") token: String): Response<AdminStatsResponse<ReviewStatsDto>>
+    suspend fun getReviewStats(
+        @Header("Authorization") token: String
+    ): Response<AdminStatsResponse<ReviewStatsDto>>
+
+    @GET("api/reviews/{reviewId}")
+    suspend fun getReviewById(
+        @Header("Authorization") token: String?,
+        @Path("reviewId") reviewId: String
+    ): Response<SingleReviewResponse>
 }

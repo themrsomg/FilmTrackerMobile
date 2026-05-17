@@ -29,4 +29,10 @@ interface CommentsApi {
         @Header("Authorization") token: String,
         @Path("commentId") commentId: String
     ): Response<Unit>
+
+    @DELETE("api/comments/admin/{id}/image")
+    suspend fun removeCommentImage(
+        @Header("Authorization") token: String,
+        @Path("id") commentId: String
+    ): Response<Unit>
 }

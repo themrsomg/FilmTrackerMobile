@@ -12,8 +12,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,10 +24,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.santabarbaramobile.ui.auth.ViewModels.ReviewDetailViewModel
+import com.example.santabarbaramobile.ui.components.ReportDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,23 +40,22 @@ fun ReviewDetailScreen(
 ) {
     var commentText by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-
     var showVerificationDialog by remember { mutableStateOf(false) }
+    var showReportDialog by remember { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
-
     val pickMedia = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         selectedImageUri = uri
     }
 
     LaunchedEffect(reviewId) {
-        viewModel.loadComments(reviewId)
+        viewModel.loadData(reviewId)
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Comentarios") },
+                title = { Text("Hilo de Comentarios") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
@@ -100,7 +103,7 @@ fun ReviewDetailScreen(
             }
         }
     ) { paddingValues ->
-        if (viewModel.isLoading) {
+        if (viewModel.isLoading && viewModel.mainReview == null) {
             Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
@@ -108,17 +111,51 @@ fun ReviewDetailScreen(
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(paddingValues),
                 contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                if (viewModel.comments.isEmpty()) {
+                viewModel.mainReview?.let { review ->
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                            border = CardDefaults.outlinedCardBorder(true)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(review.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(review.content, style = MaterialTheme.typography.bodyLarge)
+
+                                if (!review.imageUrl.isNullOrBlank()) {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    AsyncImage(
+                                        model = review.imageUrl.replace("localhost", "10.0.2.2"),
+                                        contentDescription = null,
+                                        modifier = Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(8.dp)),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Comentarios", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                    }
+                }
+
+                if (viewModel.commentsUI.isEmpty()) {
                     item {
                         Text("No hay comentarios aún. ¡Inicia la discusión!", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 } else {
-                    items(viewModel.comments) { comment ->
+                    items(viewModel.commentsUI) { item ->
+                        val comment = item.comment
+                        val user = item.user
+                        var showMenu by remember { mutableStateOf(false) }
+
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                         ) {
                             Column(modifier = Modifier.padding(12.dp)) {
                                 Row(
@@ -126,24 +163,72 @@ fun ReviewDetailScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text("Usuario Anónimo", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        if (user?.profileImage.isNullOrBlank()) {
+                                            Icon(Icons.Filled.AccountCircle, contentDescription = null, modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
+                                        } else {
+                                            AsyncImage(
+                                                model = user?.profileImage?.replace("localhost", "10.0.2.2"),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(32.dp).clip(CircleShape),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Column {
+                                            Text(user?.name ?: "Usuario", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+                                            Text("@${user?.username ?: "anonimo"}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                        }
+                                    }
 
-                                    if (viewModel.currentUserId == comment.authId || viewModel.currentUserRole == "ADMIN") {
-                                        IconButton(onClick = { viewModel.deleteComment(comment.id.toString(), reviewId) }, modifier = Modifier.size(24.dp)) {
-                                            Icon(Icons.Default.Delete, contentDescription = "Borrar", tint = MaterialTheme.colorScheme.error)
+                                    Box {
+                                        IconButton(onClick = { showMenu = true }) {
+                                            Icon(Icons.Default.MoreVert, contentDescription = "Opciones")
+                                        }
+                                        DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+                                            // Si es el dueño o admin, puede borrar todo el comentario
+                                            if (viewModel.currentUserId == comment.authId || viewModel.currentUserRole == "ADMIN") {
+                                                DropdownMenuItem(
+                                                    text = { Text("Eliminar Comentario", color = MaterialTheme.colorScheme.error) },
+                                                    onClick = {
+                                                        showMenu = false
+                                                        viewModel.deleteComment(comment.id.toString(), reviewId)
+                                                    }
+                                                )
+                                            }
+
+                                            if (viewModel.currentUserRole == "ADMIN" && !comment.imageUrl.isNullOrBlank()) {
+                                                DropdownMenuItem(
+                                                    text = { Text("Eliminar foto (Admin)", color = Color(0xFFFF9800)) },
+                                                    onClick = {
+                                                        showMenu = false
+                                                        viewModel.removeCommentImage(comment.id.toString(), reviewId)
+                                                    }
+                                                )
+                                            }
+
+                                            if (viewModel.currentUserId != comment.authId) {
+                                                DropdownMenuItem(
+                                                    text = { Text("Reportar Comentario") },
+                                                    onClick = {
+                                                        showMenu = false
+                                                        showReportDialog = comment.id.toString()
+                                                    }
+                                                )
+                                            }
                                         }
                                     }
                                 }
-                                Spacer(modifier = Modifier.height(4.dp))
 
+                                Spacer(modifier = Modifier.height(8.dp))
                                 Text(comment.content, style = MaterialTheme.typography.bodyMedium)
 
                                 if (!comment.imageUrl.isNullOrBlank()) {
-                                    val fixedUrl = comment.imageUrl.replace("localhost", "10.0.2.2")
+                                    Spacer(modifier = Modifier.height(8.dp))
                                     AsyncImage(
-                                        model = fixedUrl,
+                                        model = comment.imageUrl.replace("localhost", "10.0.2.2"),
                                         contentDescription = "Imagen del comentario",
-                                        modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(8.dp)).padding(top = 8.dp),
+                                        modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(8.dp)),
                                         contentScale = ContentScale.Crop
                                     )
                                 }
@@ -154,17 +239,25 @@ fun ReviewDetailScreen(
             }
         }
 
+        if (showReportDialog != null) {
+            ReportDialog(
+                targetType = "COMMENT",
+                targetId = showReportDialog!!,
+                onDismiss = { showReportDialog = null },
+                onSubmit = { type, id, reason, desc ->
+                    viewModel.reportComment(id, reason, desc)
+                    showReportDialog = null
+                }
+            )
+        }
+
         if (showVerificationDialog) {
             AlertDialog(
                 onDismissRequest = { showVerificationDialog = false },
                 title = { Text("Verificación Requerida") },
                 text = { Text("Debes verificar tu correo electrónico para poder comentar en las reseñas y participar en la comunidad.") },
                 confirmButton = {
-                    Button(onClick = {
-                        showVerificationDialog = false
-                    }) {
-                        Text("Entendido")
-                    }
+                    Button(onClick = { showVerificationDialog = false }) { Text("Entendido") }
                 }
             )
         }

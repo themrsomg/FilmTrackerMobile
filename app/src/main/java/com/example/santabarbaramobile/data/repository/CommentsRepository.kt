@@ -41,4 +41,18 @@ class CommentsRepository @Inject constructor(
             if (response.isSuccessful) Result.success(Unit) else Result.failure(Exception("Error al borrar"))
         } catch (e: Exception) { Result.failure(e) }
     }
+
+    suspend fun removeCommentImage(commentId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val token = "Bearer ${tokenManager.getToken()}"
+            val res = api.removeCommentImage(token, commentId)
+            if (res.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Error al remover imagen del comentario (${res.code()})"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
