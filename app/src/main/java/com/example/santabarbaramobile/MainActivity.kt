@@ -22,6 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.santabarbaramobile.ui.auth.Screens.AdminDashboardScreen
+import com.example.santabarbaramobile.ui.auth.Screens.ChangePasswordScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ConfirmAccountScreen
 import com.example.santabarbaramobile.ui.auth.Screens.EditProfileScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ForgotPasswordScreen
@@ -152,6 +153,12 @@ fun AppNavigation() {
             )
         }
 
+        composable("change_password") {
+            ChangePasswordScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
         composable("main_hub") {
             MainHubScreen(
                 onNavigateToMyProfile = {
@@ -177,7 +184,10 @@ fun AppNavigation() {
 
         composable("edit_profile") {
             EditProfileScreen(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = {
+                    navController.popBackStack() },
+                onNavigateToChangePassword = {
+                    navController.navigate("change_password") }
             )
         }
 

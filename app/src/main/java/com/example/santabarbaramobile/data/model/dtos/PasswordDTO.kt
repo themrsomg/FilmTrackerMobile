@@ -7,3 +7,8 @@ data class ResetPasswordRequest(
     val code: String,
     @SerializedName("password") val newPassword: String
 )
+
+data class ChangePasswordRequest(
+    val currentPassword: String,
+    val newPassword: String
+)

@@ -30,7 +30,8 @@ import com.example.santabarbaramobile.ui.auth.ViewModels.EditProfileViewModel
 @Composable
 fun EditProfileScreen(
     viewModel: EditProfileViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToChangePassword: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -44,7 +45,6 @@ fun EditProfileScreen(
             onNavigateBack()
         }
     }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -88,7 +88,6 @@ fun EditProfileScreen(
                                 modifier = Modifier.fillMaxSize().clip(CircleShape).background(Color.DarkGray)
                             )
                         }
-
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
@@ -100,9 +99,7 @@ fun EditProfileScreen(
                             Icon(Icons.Default.CameraAlt, contentDescription = null, tint = Color.White)
                         }
                     }
-
                     Spacer(modifier = Modifier.height(32.dp))
-
                     OutlinedTextField(
                         value = viewModel.name,
                         onValueChange = { viewModel.name = it },
@@ -110,9 +107,7 @@ fun EditProfileScreen(
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     OutlinedTextField(
                         value = viewModel.bio,
                         onValueChange = { viewModel.bio = it },
@@ -121,10 +116,20 @@ fun EditProfileScreen(
                         minLines = 3,
                         maxLines = 5
                     )
-
                     if (viewModel.errorMessage != null) {
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(text = viewModel.errorMessage!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+                    }
+                    Spacer(modifier = Modifier.height(24.dp))
+                    TextButton(
+                        onClick = onNavigateToChangePassword,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "¿Deseas cambiar tu contraseña? Haz clic aquí",
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
                 }
             }

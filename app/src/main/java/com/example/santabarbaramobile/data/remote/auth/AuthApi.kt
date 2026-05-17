@@ -4,6 +4,7 @@ import com.example.santabarbaramobile.data.model.dtos.AccountStatusResponse
 import com.example.santabarbaramobile.data.model.models.AdminStatsResponse
 import com.example.santabarbaramobile.data.model.models.AuthStatsDto
 import com.example.santabarbaramobile.data.model.dtos.BanRequestDto
+import com.example.santabarbaramobile.data.model.dtos.ChangePasswordRequest
 import com.example.santabarbaramobile.data.model.dtos.ResetPasswordRequest
 import com.example.santabarbaramobile.data.model.dtos.SuspendRequestDto
 import com.example.santabarbaramobile.data.model.models.ApiResponse
@@ -20,6 +21,7 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface AuthApi {
@@ -47,6 +49,12 @@ interface AuthApi {
     suspend fun resetPassword(
         @Body request: ResetPasswordRequest
     ): Response<Unit>
+
+    @PUT("api/auth/change-password")
+    suspend fun changePassword(
+        @Header("Authorization") token: String,
+        @Body request: ChangePasswordRequest
+    ) : Response<Unit>
 
     @POST("api/auth/verify-email")
     suspend fun verifyEmail(

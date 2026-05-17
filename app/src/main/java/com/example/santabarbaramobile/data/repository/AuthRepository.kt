@@ -2,6 +2,7 @@ package com.example.santabarbaramobile.data.repository
 
 import com.example.santabarbaramobile.data.model.dtos.AccountStatusDto
 import com.example.santabarbaramobile.data.model.dtos.BanRequestDto
+import com.example.santabarbaramobile.data.model.dtos.ChangePasswordRequest
 import com.example.santabarbaramobile.data.model.dtos.ResetPasswordRequest
 import com.example.santabarbaramobile.data.model.dtos.SuspendRequestDto
 import com.example.santabarbaramobile.data.model.models.LoginRequest
@@ -88,6 +89,27 @@ class AuthRepository @Inject constructor(
                 Result.success(Unit)
             } else {
                 Result.failure(Exception("Código inválido o expirado. (Error: ${res.code()})"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun changePassword(currentPassword: String, newPassword: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val token = "Bearer ${tokenManager.getToken()}"
+            val request = ChangePasswordRequest(currentPassword, newPassword)
+            val res = authApi.changePassword(token, request)
+
+            if (res.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                val msg = if (res.code() == 400 || res.code() == 401) {
+                    "La contraseña actual es incorrecta."
+                } else {
+                    "Error al actualizar la contraseña (${res.code()})"
+                }
+                Result.failure(Exception(msg))
             }
         } catch (e: Exception) {
             Result.failure(e)
