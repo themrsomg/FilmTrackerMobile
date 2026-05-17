@@ -4,6 +4,7 @@ import com.example.santabarbaramobile.data.model.dtos.AccountStatusResponse
 import com.example.santabarbaramobile.data.model.models.AdminStatsResponse
 import com.example.santabarbaramobile.data.model.models.AuthStatsDto
 import com.example.santabarbaramobile.data.model.dtos.BanRequestDto
+import com.example.santabarbaramobile.data.model.dtos.ResetPasswordRequest
 import com.example.santabarbaramobile.data.model.dtos.SuspendRequestDto
 import com.example.santabarbaramobile.data.model.models.ApiResponse
 import com.example.santabarbaramobile.data.model.models.ConfirmAccountRequest
@@ -23,22 +24,39 @@ import retrofit2.http.Path
 
 interface AuthApi {
     @POST("api/auth/login")
-    suspend fun login(@Body request: LoginRequest): Response<ApiResponse<LoginResponse>>
+    suspend fun login(
+        @Body request: LoginRequest
+    ): Response<ApiResponse<LoginResponse>>
 
     @POST("api/auth/register")
-    suspend fun register(@Body request: RegisterRequest): Response<ApiResponse<RegisterResponse>>
+    suspend fun register(
+        @Body request: RegisterRequest
+    ): Response<ApiResponse<RegisterResponse>>
 
     @POST("api/auth/forgot-password")
-    suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<Unit>
+    suspend fun forgotPassword(
+        @Body request: ForgotPasswordRequest
+    ): Response<Unit>
 
     @POST("auth/confirm-account")
-    suspend fun confirmAccount(@Body request: ConfirmAccountRequest): Response<Unit>
+    suspend fun confirmAccount(
+        @Body request: ConfirmAccountRequest
+    ): Response<Unit>
+
+    @POST("api/auth/reset-password")
+    suspend fun resetPassword(
+        @Body request: ResetPasswordRequest
+    ): Response<Unit>
 
     @POST("api/auth/verify-email")
-    suspend fun verifyEmail(@Body request: VerifyEmailRequest): Response<Unit>
+    suspend fun verifyEmail(
+        @Body request: VerifyEmailRequest
+    ): Response<Unit>
 
     @GET("api/auth/admin/stats")
-    suspend fun getAuthStats(@Header("Authorization") token: String): Response<AdminStatsResponse<AuthStatsDto>>
+    suspend fun getAuthStats(
+        @Header("Authorization") token: String
+    ): Response<AdminStatsResponse<AuthStatsDto>>
 
     @GET("api/auth/admin/users/{authId}/status")
     suspend fun getAccountStatus(

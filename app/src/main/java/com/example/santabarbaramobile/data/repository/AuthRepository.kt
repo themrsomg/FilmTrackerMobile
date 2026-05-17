@@ -2,6 +2,7 @@ package com.example.santabarbaramobile.data.repository
 
 import com.example.santabarbaramobile.data.model.dtos.AccountStatusDto
 import com.example.santabarbaramobile.data.model.dtos.BanRequestDto
+import com.example.santabarbaramobile.data.model.dtos.ResetPasswordRequest
 import com.example.santabarbaramobile.data.model.dtos.SuspendRequestDto
 import com.example.santabarbaramobile.data.model.models.LoginRequest
 import com.example.santabarbaramobile.data.model.models.LoginResponse
@@ -75,6 +76,19 @@ class AuthRepository @Inject constructor(
             Result.failure(Exception("Error de servidor: ${e.message()}"))
         } catch (e: IOException) {
             Result.failure(Exception("Sin conexion con el servidor. Verifica que Docker este corriendo."))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun resetPassword(email: String, code: String, newPassword: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val res = authApi.resetPassword(ResetPasswordRequest(email, code, newPassword))
+            if (res.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Código inválido o expirado. (Error: ${res.code()})"))
+            }
         } catch (e: Exception) {
             Result.failure(e)
         }

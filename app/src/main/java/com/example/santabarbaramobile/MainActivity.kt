@@ -32,6 +32,7 @@ import com.example.santabarbaramobile.ui.auth.Screens.MyReportsScreen
 import com.example.santabarbaramobile.ui.auth.Screens.NotificationsScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ProfileScreen
 import com.example.santabarbaramobile.ui.auth.Screens.RegisterScreen
+import com.example.santabarbaramobile.ui.auth.Screens.ResetPassScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ReviewDetailScreen
 import com.example.santabarbaramobile.ui.auth.Screens.ShowDetailScreen
 import com.example.santabarbaramobile.ui.auth.ViewModels.ConfirmAccountViewModel
@@ -124,12 +125,29 @@ fun AppNavigation() {
             )
         }
 
-        composable(AuthScreen.ForgotPassword.route) {
-            val forgotViewModel: ForgotPassViewModel = hiltViewModel()
+        composable("forgot_password") {
             ForgotPasswordScreen(
-                viewModel = forgotViewModel,
-                onNavigateBack = {
-                    navController.popBackStack()
+                viewModel = hiltViewModel(),
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToResetPassword = { email ->
+                    navController.navigate("reset_password/$email")
+                }
+            )
+        }
+
+        composable(
+            route = "reset_password/{email}",
+            arguments = listOf(navArgument("email") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email")
+            ResetPassScreen(
+                email = email,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToLogin = {
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             )
         }

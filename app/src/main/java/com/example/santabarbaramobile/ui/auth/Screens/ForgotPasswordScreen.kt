@@ -1,5 +1,6 @@
 package com.example.santabarbaramobile.ui.auth.Screens
 
+import android.R.color.black
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -17,11 +18,17 @@ import com.example.santabarbaramobile.ui.auth.ViewModels.ForgotPassViewModel
 @Composable
 fun ForgotPasswordScreen(
     viewModel: ForgotPassViewModel,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToResetPassword: (String) -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var email by remember { mutableStateOf("") }
 
+    LaunchedEffect(state) {
+        if (state is ForgotPassState.Success) {
+            onNavigateToResetPassword(email)
+        }
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -46,7 +53,7 @@ fun ForgotPasswordScreen(
                 fontWeight = FontWeight.Black
             )
             Text(
-                text = "Te enviaremos un correo con el enlace de recuperación configurado por el servidor.",
+                text = "Te enviaremos un correo con el código de recuperación de 6 dígitos.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 6.dp, bottom = 18.dp)
@@ -84,27 +91,13 @@ fun ForgotPasswordScreen(
                         }
                     }
 
-                    when (val currentState = state) {
-                        is ForgotPassState.Success -> {
-                            Spacer(modifier = Modifier.height(14.dp))
-                            Text(
-                                text = "Listo. Si el correo existe, recibirás instrucciones para continuar.",
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            TextButton(onClick = onNavigateBack) {
-                                Text("Volver al login")
-                            }
-                        }
-                        is ForgotPassState.Error -> {
-                            Spacer(modifier = Modifier.height(14.dp))
-                            Text(
-                                text = currentState.message,
-                                color = MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                        else -> Unit
+                    if (state is ForgotPassState.Error) {
+                        Spacer(modifier = Modifier.height(14.dp))
+                        Text(
+                            text = (state as ForgotPassState.Error).message,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall
+                        )
                     }
                 }
             }
