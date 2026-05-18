@@ -3,9 +3,9 @@ package com.example.santabarbaramobile.ui.auth.ViewModels
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.santabarbaramobile.data.remote.auth.LoginRequest
+import com.example.santabarbaramobile.data.model.models.LoginRequest
 import com.example.santabarbaramobile.data.repository.AuthRepository
-import com.example.santabarbaramobile.data.security.TokenManager // <-- IMPORTACIÓN NECESARIA
+import com.example.santabarbaramobile.data.security.TokenManager
 import com.example.santabarbaramobile.ui.auth.States.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

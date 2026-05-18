@@ -9,7 +9,9 @@ data class UserDto(
     val username: String,
     val email: String? = null,
     val profileImage: String? = null,
-    val role: String? = "USER"
+    val role: String? = "USER",
+    @SerializedName("isEmailVerified", alternate = ["emailVerified", "email_verified"])
+    val isEmailVerified: Boolean = false
 )
 
 data class UserSearchResponse(

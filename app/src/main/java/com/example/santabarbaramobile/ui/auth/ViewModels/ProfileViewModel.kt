@@ -51,15 +51,14 @@ class ProfileViewModel @Inject constructor(
 
             if (token != null) {
                 val bearerToken = "Bearer $token"
-                var realVerificationStatus = false
                 var roleFromToken = "USER"
+                var serverVerificationStatus = false
 
                 try {
                     val parts = token.split(".")
                     if (parts.size == 3) {
                         val payload = String(Base64.decode(parts[1], Base64.URL_SAFE))
                         val jsonObject = JSONObject(payload)
-                        realVerificationStatus = jsonObject.optBoolean("emailVerified", false)
                         roleFromToken = jsonObject.optString("role", "USER")
                     }
                 } catch (e: Exception) { /* Ignorar si falla el parseo */ }
@@ -91,6 +90,7 @@ class ProfileViewModel @Inject constructor(
                             fetchedUsername = it.username
                             fetchedEmail = it.email ?: ""
                             fetchedProfileImage = it.profileImage
+                            serverVerificationStatus = it.isEmailVerified
                         }
                         .onFailure { profileError = it.message }
                 } else {
@@ -126,10 +126,8 @@ class ProfileViewModel @Inject constructor(
                         username = fetchedUsername,
                         email = fetchedEmail,
                         profileImage = fetchedProfileImage,
-
-                        isEmailVerified = if (isOwnProfile) realVerificationStatus else false,
+                        isEmailVerified = if (isOwnProfile) serverVerificationStatus else false,
                         currentUserRole = roleFromToken,
-
                         watchlist = populatedWatchlist,
                         favorites = populatedFavorites,
                         targetAuthId = userId ?: "",
