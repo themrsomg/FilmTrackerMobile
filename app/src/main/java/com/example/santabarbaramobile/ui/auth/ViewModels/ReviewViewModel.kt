@@ -2,7 +2,6 @@ package com.example.santabarbaramobile.ui.auth.ViewModels
 
 import android.content.Context
 import android.net.Uri
-import android.util.Base64
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -18,7 +17,6 @@ import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import javax.inject.Inject
@@ -46,11 +44,10 @@ class ReviewViewModel @Inject constructor(
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
-    var isEmailVerified by mutableStateOf(false)
-        private set
-
     var currentUserEmail by mutableStateOf("")
         private set
+
+    val isEmailVerifiedGlobal = tokenManager.isEmailVerified
 
     init {
         loadCurrentUserId()
@@ -60,21 +57,11 @@ class ReviewViewModel @Inject constructor(
         viewModelScope.launch {
             val token = tokenManager.getToken()
             if (token != null) {
-                var realVerificationStatus = false
-                try {
-                    val parts = token.split(".")
-                    if (parts.size == 3) {
-                        val payload = String(Base64.decode(parts[1], Base64.URL_SAFE))
-                        val jsonObject = JSONObject(payload)
-                        realVerificationStatus = jsonObject.optBoolean("emailVerified", false)
-                    }
-                } catch (e: Exception) { /* Ignorar */ }
-
                 userRepository.getUserProfile("Bearer $token").onSuccess { profile ->
                     currentUserId = profile.authId
                     currentUserRole = profile.role
-                    isEmailVerified = realVerificationStatus
                     currentUserEmail = profile.email
+                    tokenManager.updateVerificationStatus(profile.email, profile.isEmailVerified)
                 }
             }
         }

@@ -12,7 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.EmojiEvents // <-- ÍCONO DEL TROFEO
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
@@ -252,7 +252,7 @@ private fun MainContent(
         item { SectionHeader("Series Nuevas") }
         item { MediaCarousel(recent, onShowClick) }
 
-        item { SectionHeader("Para maratonear") }
+        item { SectionHeader("Para Maratonear") }
         item { MediaCarousel(recent.asReversed(), onShowClick) }
     }
 }

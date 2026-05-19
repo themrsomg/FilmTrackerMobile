@@ -186,7 +186,6 @@ fun ReviewDetailScreen(
                                             Icon(Icons.Default.MoreVert, contentDescription = "Opciones")
                                         }
                                         DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
-                                            // Si es el dueño o admin, puede borrar todo el comentario
                                             if (viewModel.currentUserId == comment.authId || viewModel.currentUserRole == "ADMIN") {
                                                 DropdownMenuItem(
                                                     text = { Text("Eliminar Comentario", color = MaterialTheme.colorScheme.error) },

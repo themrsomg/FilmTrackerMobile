@@ -1,39 +1,13 @@
 package com.example.santabarbaramobile.ui.auth.Screens
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -47,8 +21,7 @@ import com.example.santabarbaramobile.ui.auth.ViewModels.RegisterViewModel
 fun RegisterScreen(
     viewModel: RegisterViewModel,
     onNavigateBack: () -> Unit,
-    onNavigateToConfirm: (String) -> Unit,
-    onNavigateToLogin: () -> Unit
+    onNavigateToMainHub: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -57,32 +30,10 @@ fun RegisterScreen(
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-    var showSuccessDialog by remember { mutableStateOf(false) }
-    var registeredEmail by remember { mutableStateOf("") }
-
     LaunchedEffect(uiState) {
         if (uiState is ResourceState.Success) {
-            registeredEmail = (uiState as ResourceState.Success<String>).data
-            showSuccessDialog = true
+            onNavigateToMainHub()
         }
-    }
-
-    if (showSuccessDialog) {
-        AlertDialog(
-            onDismissRequest = { },
-            title = { Text("¡Cuenta Creada!") },
-            text = { Text("Te hemos enviado un código a tu correo. Puedes verificar tu cuenta ahora para habilitar todas las funciones (como reseñas y comentarios), o iniciar sesión y explorar la app.") },
-            confirmButton = {
-                Button(onClick = { onNavigateToConfirm(registeredEmail) }) {
-                    Text("Verificar ahora")
-                }
-            },
-            dismissButton = {
-                OutlinedButton(onClick = { onNavigateToLogin() }) {
-                    Text("Iniciar sesión")
-                }
-            }
-        )
     }
 
     Scaffold(

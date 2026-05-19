@@ -99,11 +99,10 @@ fun AppNavigation() {
                 onNavigateBack = {
                     navController.popBackStack()
                 },
-                onNavigateToConfirm = { email ->
-                    navController.navigate("confirm_account/$email")
-                },
-                onNavigateToLogin = {
-                    navController.popBackStack()
+                onNavigateToMainHub = {
+                    navController.navigate("main_hub") {
+                        popUpTo(AuthScreen.Login.route) { inclusive = true }
+                    }
                 }
             )
         }
@@ -119,9 +118,10 @@ fun AppNavigation() {
                 email = email,
                 viewModel = confirmViewModel,
                 onVerificationSuccess = {
-                    navController.navigate(AuthScreen.Login.route) {
-                        popUpTo(AuthScreen.Login.route) { inclusive = true }
-                    }
+                    navController.popBackStack()
+                },
+                onNavigateBack = {
+                    navController.popBackStack()
                 }
             )
         }

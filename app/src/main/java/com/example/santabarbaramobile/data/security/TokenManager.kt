@@ -6,6 +6,9 @@ import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -13,6 +16,9 @@ import javax.inject.Singleton
 class TokenManager @Inject constructor(@ApplicationContext context: Context) {
 
     private val prefs: SharedPreferences
+
+    private val _isEmailVerified = MutableStateFlow(false)
+    val isEmailVerified: StateFlow<Boolean> = _isEmailVerified.asStateFlow()
 
     init {
         prefs = try {
@@ -31,21 +37,44 @@ class TokenManager @Inject constructor(@ApplicationContext context: Context) {
             Log.e("TokenManager", "Fallo el Keystore. Usando Fallback de SharedPreferences.", e)
             context.getSharedPreferences("fallback_auth_prefs", Context.MODE_PRIVATE)
         }
+        val savedEmail = prefs.getString("USER_EMAIL", "")
+        if (!savedEmail.isNullOrBlank()) {
+            _isEmailVerified.value = prefs.getBoolean("VERIFIED_$savedEmail", false)
+        }
     }
 
-    fun saveToken(token: String) {
-        prefs.edit().putString("JWT_TOKEN", token).apply()
-        Log.d("TokenManager", "Token guardado en persistencia exitosamente.")
+    fun saveSession(token: String, email: String) {
+        prefs.edit()
+            .putString("JWT_TOKEN", token)
+            .putString("USER_EMAIL", email)
+            .apply()
+
+        val matchesLocalVerification = prefs.getBoolean("VERIFIED_$email", false)
+        _isEmailVerified.value = matchesLocalVerification
+        Log.d("TokenManager", "Sesión guardada para $email. Estado de verificación local: $matchesLocalVerification")
     }
 
-    fun getToken(): String? {
-        val token = prefs.getString("JWT_TOKEN", null)
-        Log.d("TokenManager", "Token recuperado: ${if (token != null) "VÁLIDO" else "NULL"}")
-        return token
+    fun updateVerificationStatus(email: String, serverStatus: Boolean) {
+        val matchesLocalVerification = prefs.getBoolean("VERIFIED_$email", false)
+        _isEmailVerified.value = matchesLocalVerification
     }
+
+    fun markAsVerifiedLocally() {
+        val savedEmail = prefs.getString("USER_EMAIL", "")
+        if (!savedEmail.isNullOrBlank()) {
+            prefs.edit().putBoolean("VERIFIED_$savedEmail", true).apply()
+            _isEmailVerified.value = true
+            Log.d("TokenManager", "Cuenta verificada con éxito localmente para: $savedEmail")
+        }
+    }
+
+    fun getToken(): String? = prefs.getString("JWT_TOKEN", null)
+
+    fun getUserEmail(): String? = prefs.getString("USER_EMAIL", null)
 
     fun clearToken() {
-        prefs.edit().remove("JWT_TOKEN").apply()
+        prefs.edit().remove("JWT_TOKEN").remove("USER_EMAIL").apply()
+        _isEmailVerified.value = false
         Log.d("TokenManager", "Sesión limpiada localmente.")
     }
 }

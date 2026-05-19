@@ -2,7 +2,6 @@ package com.example.santabarbaramobile.ui.auth.ViewModels
 
 import android.content.Context
 import android.net.Uri
-import android.util.Base64
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -23,7 +22,6 @@ import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import javax.inject.Inject
@@ -60,25 +58,23 @@ class ReviewDetailViewModel @Inject constructor(
     var isEmailVerified by mutableStateOf(false)
         private set
 
-    init { loadCurrentUserId() }
+    init {
+        loadCurrentUserId()
+
+        viewModelScope.launch {
+            tokenManager.isEmailVerified.collect { verifiedLocally ->
+                isEmailVerified = verifiedLocally
+            }
+        }
+    }
 
     private fun loadCurrentUserId() {
         viewModelScope.launch {
             val token = tokenManager.getToken()
             if (token != null) {
-                var verified = false
-                try {
-                    val parts = token.split(".")
-                    if (parts.size == 3) {
-                        val payload = String(Base64.decode(parts[1], Base64.URL_SAFE))
-                        verified = JSONObject(payload).optBoolean("emailVerified", false)
-                    }
-                } catch (e: Exception) { }
-
                 userRepository.getUserProfile("Bearer $token").onSuccess { profile ->
                     currentUserId = profile.authId
                     currentUserRole = profile.role
-                    isEmailVerified = verified
                 }
             }
         }

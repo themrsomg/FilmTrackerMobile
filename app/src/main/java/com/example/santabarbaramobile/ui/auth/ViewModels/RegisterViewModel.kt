@@ -3,8 +3,10 @@ package com.example.santabarbaramobile.ui.auth.ViewModels
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.santabarbaramobile.data.model.models.LoginRequest
 import com.example.santabarbaramobile.data.model.models.RegisterRequest
 import com.example.santabarbaramobile.data.repository.AuthRepository
+import com.example.santabarbaramobile.data.security.TokenManager
 import com.example.santabarbaramobile.ui.auth.States.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
-    private val repository: AuthRepository
+    private val repository: AuthRepository,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ResourceState<String>?>(null)
@@ -68,7 +71,14 @@ class RegisterViewModel @Inject constructor(
                 )
             )
                 .onSuccess {
-                    _uiState.value = ResourceState.Success(normalizedEmail)
+                    repository.login(LoginRequest(normalizedEmail, pass))
+                        .onSuccess { loginResponse ->
+                            tokenManager.saveSession(loginResponse.token, normalizedEmail)
+                            _uiState.value = ResourceState.Success(normalizedEmail)
+                        }
+                        .onFailure { error ->
+                            _uiState.value = ResourceState.Error("Registro exitoso, pero falló el auto-login: ${error.message}")
+                        }
                 }
                 .onFailure { error ->
                     _uiState.value = ResourceState.Error(error.message ?: "No se pudo completar el registro")

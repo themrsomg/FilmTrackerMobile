@@ -51,8 +51,8 @@ class ProfileViewModel @Inject constructor(
 
             if (token != null) {
                 val bearerToken = "Bearer $token"
+
                 var roleFromToken = "USER"
-                var serverVerificationStatus = false
 
                 try {
                     val parts = token.split(".")
@@ -90,7 +90,6 @@ class ProfileViewModel @Inject constructor(
                             fetchedUsername = it.username
                             fetchedEmail = it.email ?: ""
                             fetchedProfileImage = it.profileImage
-                            serverVerificationStatus = it.isEmailVerified
                         }
                         .onFailure { profileError = it.message }
                 } else {
@@ -126,7 +125,7 @@ class ProfileViewModel @Inject constructor(
                         username = fetchedUsername,
                         email = fetchedEmail,
                         profileImage = fetchedProfileImage,
-                        isEmailVerified = if (isOwnProfile) serverVerificationStatus else false,
+                        isEmailVerified = if (isOwnProfile) tokenManager.isEmailVerified.value else false,
                         currentUserRole = roleFromToken,
                         watchlist = populatedWatchlist,
                         favorites = populatedFavorites,

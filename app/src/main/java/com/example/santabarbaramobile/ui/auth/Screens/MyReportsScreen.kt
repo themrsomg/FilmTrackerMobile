@@ -77,8 +77,8 @@ fun MyReportsScreen(
 @Composable
 fun UserReportCard(report: AdminReportDto) {
     val statusColor = when (report.status) {
-        "PENDING" -> Color(0xFFFF9800) // Naranja
-        "ACTION_TAKEN" -> Color(0xFF4CAF50) // Verde
+        "PENDING" -> Color(0xFFFF9800)
+        "ACTION_TAKEN" -> Color(0xFF4CAF50)
         "DISMISSED" -> Color.Gray
         else -> Color.White
     }

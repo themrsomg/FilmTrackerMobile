@@ -59,6 +59,7 @@ fun ShowDetailScreen(
     onNavigateToConfirm: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isVerifiedGlobal by reviewViewModel.isEmailVerifiedGlobal.collectAsStateWithLifecycle(initialValue = false)
     val context = LocalContext.current
     var showVerificationDialog by remember { mutableStateOf(false) }
     var showReviewDialog by remember { mutableStateOf(false) }
@@ -168,7 +169,7 @@ fun ShowDetailScreen(
                         ) {
                             Text("Reseñas de la Comunidad", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                             Button(onClick = {
-                                if (reviewViewModel.isEmailVerified) {
+                                if (isVerifiedGlobal) {
                                     reviewToEdit = null
                                     showReviewDialog = true
                                 } else {
@@ -194,14 +195,22 @@ fun ShowDetailScreen(
                                 isOwner = isOwner,
                                 isAdmin = isAdmin,
                                 onEditClick = {
-                                    reviewToEdit = it
-                                    showReviewDialog = true
+                                    if (isVerifiedGlobal) {
+                                        reviewToEdit = it
+                                        showReviewDialog = true
+                                    } else {
+                                        showVerificationDialog = true
+                                    }
                                 },
                                 onDeleteClick = { id ->
                                     reviewViewModel.deleteReview(id, showId.toInt())
                                 },
                                 onLikeClick = { id, liked ->
-                                    reviewViewModel.toggleLike(id, liked)
+                                    if (isVerifiedGlobal) {
+                                        reviewViewModel.toggleLike(id, liked)
+                                    } else {
+                                        showVerificationDialog = true
+                                    }
                                 },
                                 onCardClick = {
                                     onNavigateToReviewDetail(review.id.toString())
@@ -249,7 +258,7 @@ fun ShowDetailScreen(
             AlertDialog(
                 onDismissRequest = { showVerificationDialog = false },
                 title = { Text("Verificación Requerida") },
-                text = { Text("Debes verificar tu correo electrónico para poder escribir reseñas y participar.") },
+                text = { Text("Debes verificar tu correo electrónico para poder escribir reseñas, dar likes y participar en la comunidad.") },
                 confirmButton = {
                     Button(onClick = {
                         showVerificationDialog = false

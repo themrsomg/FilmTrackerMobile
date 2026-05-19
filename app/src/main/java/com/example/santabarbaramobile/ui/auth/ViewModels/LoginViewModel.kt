@@ -40,7 +40,7 @@ class LoginViewModel @Inject constructor(
             _uiState.value = ResourceState.Loading
             repository.login(LoginRequest(normalizedEmail, pass))
                 .onSuccess { response ->
-                    tokenManager.saveToken(response.token)
+                    tokenManager.saveSession(response.token, normalizedEmail)
 
                     _uiState.value = ResourceState.Success(Unit)
                 }
