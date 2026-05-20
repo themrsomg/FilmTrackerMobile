@@ -1,16 +1,16 @@
 package com.example.santabarbaramobile.di
 
 import android.util.Log
-import com.example.santabarbaramobile.data.remote.SantaBarbaraApi
-import com.example.santabarbaramobile.data.remote.auth.AuthApi
-import com.example.santabarbaramobile.data.remote.library.UserLibraryApi
-import com.example.santabarbaramobile.data.remote.users.UsersApi
-import com.example.santabarbaramobile.data.remote.friends.FriendsApi
-import com.example.santabarbaramobile.data.remote.moderation.ModerationApi
-import com.example.santabarbaramobile.data.remote.notifications.NotificationsApi
-import com.example.santabarbaramobile.data.remote.reviews.CommentsApi
-import com.example.santabarbaramobile.data.remote.reviews.ReviewsApi
-import com.example.santabarbaramobile.data.remote.reviews.LeaderboardsApi
+import com.example.santabarbaramobile.core.network.SantaBarbaraApi
+import com.example.santabarbaramobile.feature.auth.data.AuthApi
+import com.example.santabarbaramobile.feature.profile.data.UserLibraryApi
+import com.example.santabarbaramobile.feature.profile.data.UsersApi
+import com.example.santabarbaramobile.feature.friends.data.FriendsApi
+import com.example.santabarbaramobile.feature.profile.data.ModerationApi
+import com.example.santabarbaramobile.feature.profile.data.NotificationsApi
+import com.example.santabarbaramobile.feature.reviews.data.CommentsApi
+import com.example.santabarbaramobile.feature.reviews.data.ReviewsApi
+import com.example.santabarbaramobile.feature.reviews.data.LeaderboardsApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

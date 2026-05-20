@@ -21,31 +21,32 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.santabarbaramobile.ui.auth.Screens.AdminDashboardScreen
-import com.example.santabarbaramobile.ui.auth.Screens.ChangePasswordScreen
-import com.example.santabarbaramobile.ui.auth.Screens.ConfirmAccountScreen
-import com.example.santabarbaramobile.ui.auth.Screens.EditProfileScreen
-import com.example.santabarbaramobile.ui.auth.Screens.ForgotPasswordScreen
-import com.example.santabarbaramobile.ui.auth.Screens.LeaderboardsScreen
-import com.example.santabarbaramobile.ui.auth.Screens.LoginScreen
-import com.example.santabarbaramobile.ui.auth.Screens.MainHubScreen
-import com.example.santabarbaramobile.ui.auth.Screens.MyReportsScreen
-import com.example.santabarbaramobile.ui.auth.Screens.NotificationsScreen
-import com.example.santabarbaramobile.ui.auth.Screens.ProfileScreen
-import com.example.santabarbaramobile.ui.auth.Screens.RegisterScreen
-import com.example.santabarbaramobile.ui.auth.Screens.ResetPassScreen
-import com.example.santabarbaramobile.ui.auth.Screens.ReviewDetailScreen
-import com.example.santabarbaramobile.ui.auth.Screens.ShowDetailScreen
-import com.example.santabarbaramobile.ui.auth.ViewModels.ConfirmAccountViewModel
-import com.example.santabarbaramobile.ui.auth.ViewModels.ForgotPassViewModel
-import com.example.santabarbaramobile.ui.auth.ViewModels.LoginViewModel
-import com.example.santabarbaramobile.ui.auth.ViewModels.ProfileViewModel
-import com.example.santabarbaramobile.ui.auth.ViewModels.RegisterViewModel
-import com.example.santabarbaramobile.ui.auth.ViewModels.ReviewDetailViewModel
-import com.example.santabarbaramobile.ui.auth.ViewModels.ShowDetailViewModel
+import com.example.santabarbaramobile.feature.profile.presentation.AdminDashboardScreen
+import com.example.santabarbaramobile.feature.auth.presentation.ChangePasswordScreen
+import com.example.santabarbaramobile.feature.auth.presentation.ConfirmAccountScreen
+import com.example.santabarbaramobile.feature.profile.presentation.EditProfileScreen
+import com.example.santabarbaramobile.feature.auth.presentation.ForgotPasswordScreen
+import com.example.santabarbaramobile.feature.profile.presentation.LeaderboardsScreen
+import com.example.santabarbaramobile.feature.auth.presentation.LoginScreen
+import com.example.santabarbaramobile.feature.profile.presentation.MainHubScreen
+import com.example.santabarbaramobile.feature.profile.presentation.MyReportsScreen
+import com.example.santabarbaramobile.feature.profile.presentation.NotificationsScreen
+import com.example.santabarbaramobile.feature.profile.presentation.ProfileScreen
+import com.example.santabarbaramobile.feature.auth.presentation.RegisterScreen
+import com.example.santabarbaramobile.feature.auth.presentation.ResetPassScreen
+import com.example.santabarbaramobile.feature.reviews.presentation.ReviewDetailScreen
+import com.example.santabarbaramobile.feature.shows.presentation.ShowDetailScreen
+import com.example.santabarbaramobile.feature.auth.presentation.ConfirmAccountViewModel
+import com.example.santabarbaramobile.feature.auth.presentation.LoginViewModel
+import com.example.santabarbaramobile.feature.profile.presentation.ProfileViewModel
+import com.example.santabarbaramobile.feature.auth.presentation.RegisterViewModel
+import com.example.santabarbaramobile.feature.friends.presentation.FriendsManagerScreen
+import com.example.santabarbaramobile.feature.friends.presentation.FriendsManagerViewModel
+import com.example.santabarbaramobile.feature.reviews.presentation.ReviewDetailViewModel
+import com.example.santabarbaramobile.feature.shows.presentation.ShowDetailViewModel
 
-import com.example.santabarbaramobile.ui.navigation.AuthScreen
-import com.example.santabarbaramobile.ui.theme.SantaBarbaraMobileTheme
+import com.example.santabarbaramobile.core.ui.AuthScreen
+import com.example.santabarbaramobile.core.theme.SantaBarbaraMobileTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -234,8 +235,8 @@ fun AppNavigation() {
         }
 
         composable("friends_manager") {
-            val friendsViewModel: com.example.santabarbaramobile.ui.auth.ViewModels.FriendsManagerViewModel = hiltViewModel()
-            com.example.santabarbaramobile.ui.auth.Screens.FriendsManagerScreen(
+            val friendsViewModel: FriendsManagerViewModel = hiltViewModel()
+            FriendsManagerScreen(
                 viewModel = friendsViewModel,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToProfile = { userId, username ->
