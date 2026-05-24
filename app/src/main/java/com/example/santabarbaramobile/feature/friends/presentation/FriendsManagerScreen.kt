@@ -16,6 +16,10 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,6 +28,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.santabarbaramobile.feature.friends.domain.FriendUIItem
 import com.example.santabarbaramobile.feature.friends.domain.RequestUIItem
 import com.example.santabarbaramobile.feature.profile.domain.UserDto
 
@@ -35,6 +40,7 @@ fun FriendsManagerScreen(
     onNavigateToProfile: (String, String) -> Unit
 ) {
     val state = viewModel.uiState
+    var friendToRemove by remember { mutableStateOf<FriendUIItem?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.loadData()
@@ -71,10 +77,14 @@ fun FriendsManagerScreen(
                 } else {
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         items(state.friends) { friend ->
-                            FriendCard(user = friend.user, onClick = {
-                                val targetId = friend.user.authId ?: friend.user.id ?: ""
-                                onNavigateToProfile(targetId, friend.user.username)
-                            })
+                            FriendCard(
+                                user = friend.user,
+                                onClick = {
+                                    val targetId = friend.user.authId ?: friend.user.id ?: ""
+                                    onNavigateToProfile(targetId, friend.user.username)
+                                },
+                                onDelete = { friendToRemove = friend }
+                            )
                         }
                     }
                 }
@@ -113,28 +123,65 @@ fun FriendsManagerScreen(
                 }
             }
         }
+        if (friendToRemove != null) {
+            AlertDialog(
+                onDismissRequest = { friendToRemove = null },
+                title = { Text("Eliminar Amigo") },
+                text = { Text("¿Estás seguro de que deseas eliminar a @${friendToRemove!!.user.username} de tu lista de amigos?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            val targetId = friendToRemove!!.user.authId ?: friendToRemove!!.user.id ?: ""
+                            if (targetId.isNotEmpty()) {
+                                viewModel.removeFriend(targetId)
+                            }
+                            friendToRemove = null
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Sí, eliminar")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { friendToRemove = null }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
+        }
     }
 }
 
 @Composable
-fun FriendCard(user: UserDto, onClick: () -> Unit) {
+fun FriendCard(user: UserDto, onClick: () -> Unit, onDelete: () -> Unit) {
     Card(
         modifier = Modifier.width(130.dp).clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(16.dp).fillMaxWidth()
-        ) {
-            if (user.profileImage.isNullOrBlank()) {
-                Icon(Icons.Filled.AccountCircle, contentDescription = null, modifier = Modifier.size(60.dp), tint = MaterialTheme.colorScheme.primary)
-            } else {
-                AsyncImage(model = user.profileImage, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.size(60.dp).clip(CircleShape))
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(16.dp).fillMaxWidth()
+            ) {
+                if (user.profileImage.isNullOrBlank()) {
+                    Icon(Icons.Filled.AccountCircle, contentDescription = null, modifier = Modifier.size(60.dp), tint = MaterialTheme.colorScheme.primary)
+                } else {
+                    AsyncImage(model = user.profileImage, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.size(60.dp).clip(CircleShape))
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(user.name ?: "Usuario", fontWeight = FontWeight.Bold, maxLines = 1)
+                Text("@${user.username}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(user.name ?: "Usuario", fontWeight = FontWeight.Bold, maxLines = 1)
-            Text("@${user.username}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+            IconButton(
+                onClick = onDelete,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(36.dp)
+                    .padding(4.dp)
+            ) {
+                Icon(Icons.Default.Close, contentDescription = "Eliminar amigo", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
+            }
         }
     }
 }

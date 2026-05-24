@@ -88,4 +88,9 @@ class FriendsManagerViewModel @Inject constructor(
     fun cancelRequest(requestId: Int) = viewModelScope.launch {
         friendsRepository.cancelFriendRequest(requestId).onSuccess { loadData() }
     }
+
+    fun removeFriend(friendAuthId: String) = viewModelScope.launch {
+        friendsRepository.removeFriend(friendAuthId).onSuccess { loadData() }
+    }
+
 }

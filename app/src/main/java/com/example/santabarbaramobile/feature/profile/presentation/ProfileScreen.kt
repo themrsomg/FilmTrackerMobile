@@ -209,12 +209,12 @@ private fun ProfileContent(
                 }
             }
         }
-
         if (!state.isOwnProfile && state.targetAuthId.isNotEmpty()) {
             Spacer(modifier = Modifier.height(16.dp))
+            var showRemoveFriendDialog by remember { mutableStateOf(false) }
             when (state.friendshipStatus) {
                 "LOADING" -> CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                "FRIENDS" -> OutlinedButton(onClick = onRemoveFriend) {
+                "FRIENDS" -> OutlinedButton(onClick = { showRemoveFriendDialog = true }) {
                     Text("Eliminar amigo")
                 }
                 "PENDING_OUTGOING" -> OutlinedButton(onClick = { }, enabled = false) {
@@ -229,6 +229,27 @@ private fun ProfileContent(
                 ) {
                     Text("Agregar amigo")
                 }
+            }
+            if (showRemoveFriendDialog) {
+                AlertDialog(
+                    onDismissRequest = { showRemoveFriendDialog = false },
+                    title = { Text("Eliminar Amigo") },
+                    text = { Text("¿Estás seguro de que deseas eliminar a @${state.username} de tu lista de amigos?") },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                showRemoveFriendDialog = false
+                                onRemoveFriend()
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                        ) {
+                            Text("Sí, eliminar", color = Color.White)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showRemoveFriendDialog = false }) { Text("Cancelar") }
+                    }
+                )
             }
 
             var showReportDialog by remember { mutableStateOf(false) }
