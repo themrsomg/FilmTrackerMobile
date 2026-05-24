@@ -77,4 +77,11 @@ interface ReviewsApi {
         @Header("Authorization") token: String?,
         @Path("reviewId") reviewId: String
     ): Response<SingleReviewResponse>
+
+    @GET("api/reviews/user/{userId}")
+    suspend fun getReviewsByUser(
+        @Header("Authorization") token: String?,
+        @Path("userId") userId: String,
+        @Query("page") page: Int = 1
+    ): Response<ReviewPaginationResponse>
 }

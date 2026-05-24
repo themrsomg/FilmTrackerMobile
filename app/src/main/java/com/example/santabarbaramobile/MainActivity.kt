@@ -47,6 +47,7 @@ import com.example.santabarbaramobile.feature.shows.presentation.ShowDetailViewM
 
 import com.example.santabarbaramobile.core.ui.AuthScreen
 import com.example.santabarbaramobile.core.theme.SantaBarbaraMobileTheme
+import com.example.santabarbaramobile.feature.reviews.presentation.UserReviewsScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -193,6 +194,20 @@ fun AppNavigation() {
         }
 
         composable(
+            route = "user_reviews/{userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val targetUserId = backStackEntry.arguments?.getString("userId") ?: ""
+            UserReviewsScreen(
+                userId = targetUserId,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToReviewDetail = { tvmazeId ->
+                    navController.navigate("show_detail/$tvmazeId")
+                }
+            )
+        }
+
+        composable(
             route = "profile?userId={userId}&username={username}",
             arguments = listOf(
                 navArgument("userId") { type = NavType.StringType; nullable = true; defaultValue = null },
@@ -230,6 +245,9 @@ fun AppNavigation() {
                 },
                 onNavigateToEditProfile = {
                     navController.navigate("edit_profile")
+                },
+                onNavigateToUserReviews = {
+                    targetId -> navController.navigate("user_reviews/$targetId")
                 }
             )
         }

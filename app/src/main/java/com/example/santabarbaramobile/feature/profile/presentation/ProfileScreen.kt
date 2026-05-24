@@ -70,6 +70,7 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     onNavigateToMyReports: () -> Unit,
     onNavigateToEditProfile: () -> Unit,
+    onNavigateToUserReviews: (String) -> Unit,
     onNavigateToConfirm: (String) -> Unit
 ) {
     val state = viewModel.uiState
@@ -102,6 +103,7 @@ fun ProfileScreen(
                     onLogout = onLogout,
                     onNavigateToFriendsManager = onNavigateToFriendsManager,
                     onNavigateToMyReports = onNavigateToMyReports,
+                    onNavigateToUserReviews = onNavigateToUserReviews,
                     onNavigateToEditProfile = onNavigateToEditProfile,
                     onAddFriend = { viewModel.sendFriendRequest() },
                     onRemoveFriend = { viewModel.removeFriend() },
@@ -122,6 +124,7 @@ private fun ProfileContent(
     onLogout: () -> Unit,
     onNavigateToFriendsManager: () -> Unit,
     onNavigateToMyReports: () -> Unit,
+    onNavigateToUserReviews: (String) -> Unit,
     onNavigateToEditProfile: () -> Unit,
     onAddFriend: () -> Unit,
     onRemoveFriend: () -> Unit,
@@ -341,7 +344,6 @@ private fun ProfileContent(
                     }
                 }
             }
-
             if (!state.banSuccessMessage.isNullOrEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -351,7 +353,18 @@ private fun ProfileContent(
                     fontWeight = FontWeight.Bold
                 )
             }
-
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = {
+                    if (state.targetAuthId.isNotBlank()) {
+                        onNavigateToUserReviews(state.targetAuthId)
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                modifier = Modifier.fillMaxWidth(0.7f)
+            ) {
+                Text("Ver Reseñas", color = Color.White)
+            }
         } else if (state.isOwnProfile) {
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedButton(
@@ -381,6 +394,18 @@ private fun ProfileContent(
                 Icon(Icons.Outlined.Flag, contentDescription = null, tint = Color.White)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Mis Reportes", color = Color.White)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = {
+                    if (state.targetAuthId.isNotBlank()) {
+                        onNavigateToUserReviews(state.targetAuthId)
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                modifier = Modifier.fillMaxWidth(0.7f)
+            ) {
+                Text("Mis Reseñas", color = Color.White)
             }
         }
 

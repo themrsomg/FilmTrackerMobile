@@ -47,3 +47,9 @@ data class UpdateReviewRequest(
     val title: String,
     val content: String
 )
+
+data class UserReviewsUiState(
+    val isLoading: Boolean = false,
+    val reviews: List<ReviewDto> = emptyList(),
+    val error: String? = null
+)

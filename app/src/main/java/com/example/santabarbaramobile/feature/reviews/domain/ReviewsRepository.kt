@@ -132,4 +132,20 @@ class ReviewsRepository @Inject constructor(
             Result.failure(e)
         }
     }
+
+    suspend fun getReviewsByUser(userId: String, page: Int = 1): Result<List<ReviewDto>> =
+        withContext(Dispatchers.IO) {
+            try {
+                val token = tokenManager.getToken()?.let { "Bearer $it" }
+                val response = api.getReviewsByUser(token, userId, page)
+
+                if (response.isSuccessful && response.body() != null) {
+                    Result.success(response.body()!!.reviews)
+                } else {
+                    Result.failure(Exception("Error al cargar las reseñas del usuario"))
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
 }

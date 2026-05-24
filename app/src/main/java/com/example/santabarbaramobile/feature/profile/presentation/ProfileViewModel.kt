@@ -53,6 +53,7 @@ class ProfileViewModel @Inject constructor(
                 val bearerToken = "Bearer $token"
 
                 var roleFromToken = "USER"
+                var myOwnAuthId = ""
 
                 try {
                     val parts = token.split(".")
@@ -60,6 +61,7 @@ class ProfileViewModel @Inject constructor(
                         val payload = String(Base64.decode(parts[1], Base64.URL_SAFE))
                         val jsonObject = JSONObject(payload)
                         roleFromToken = jsonObject.optString("role", "USER")
+                        myOwnAuthId = jsonObject.optString("authId", "")
                     }
                 } catch (e: Exception) { /* Ignorar si falla el parseo */ }
 
@@ -129,7 +131,7 @@ class ProfileViewModel @Inject constructor(
                         currentUserRole = roleFromToken,
                         watchlist = populatedWatchlist,
                         favorites = populatedFavorites,
-                        targetAuthId = userId ?: "",
+                        targetAuthId = userId ?: myOwnAuthId,
                         friendshipStatus = fetchedStatus,
                         isLoading = false
                     )
