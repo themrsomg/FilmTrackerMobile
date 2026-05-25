@@ -8,14 +8,17 @@ import androidx.lifecycle.viewModelScope
 import com.example.santabarbaramobile.feature.profile.domain.TopReviewDto
 import com.example.santabarbaramobile.feature.profile.domain.TopUserDto
 import com.example.santabarbaramobile.feature.friends.domain.LeaderboardsRepository
+import com.example.santabarbaramobile.feature.profile.domain.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class LeaderboardsViewModel @Inject constructor(
-    private val repository: LeaderboardsRepository
+    private val repository: LeaderboardsRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     var isLoading by mutableStateOf(true)
@@ -43,8 +46,27 @@ class LeaderboardsViewModel @Inject constructor(
             val reviewsResult = reviewsDeferred.await()
 
             if (usersResult.isSuccess && reviewsResult.isSuccess) {
-                topUsers = usersResult.getOrDefault(emptyList())
-                topReviews = reviewsResult.getOrDefault(emptyList())
+                val rawUsers = usersResult.getOrDefault(emptyList())
+                val hydratedUsers = rawUsers.map { user ->
+                    async {
+                        val profile = userRepository.getUserById(user.authId).getOrNull()
+                        user.copy(
+                            username = profile?.username ?: "Usuario",
+                            profileImage = profile?.profileImage
+                        )
+                    }
+                }.awaitAll()
+                val rawReviews = reviewsResult.getOrDefault(emptyList())
+                val hydratedReviews = rawReviews.map { review ->
+                    async {
+                        val profile = userRepository.getUserById(review.authId).getOrNull()
+                        review.copy(
+                            username = profile?.username ?: "Usuario"
+                        )
+                    }
+                }.awaitAll()
+                topUsers = hydratedUsers
+                topReviews = hydratedReviews
             } else {
                 errorMessage = "Hubo un problema al cargar el salón de la fama."
             }

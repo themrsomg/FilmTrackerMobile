@@ -32,7 +32,7 @@ fun LeaderboardsScreen(
     viewModel: LeaderboardsViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
     onUserClick: (String, String) -> Unit,
-    onShowClick: (String) -> Unit
+    onReviewClick: (String) -> Unit
 ) {
     var selectedTab by remember { mutableStateOf(0) }
     val tabs = listOf("Usuarios Top", "Reseñas Top")
@@ -84,7 +84,7 @@ fun LeaderboardsScreen(
                             }
                         } else {
                             itemsIndexed(viewModel.topReviews) { index, review ->
-                                TopReviewCard(index + 1, review, onShowClick)
+                                TopReviewCard(index + 1, review, onReviewClick)
                             }
                         }
                     }
@@ -104,7 +104,9 @@ fun TopUserCard(rank: Int, user: TopUserDto, onUserClick: (String, String) -> Un
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth().clickable { onUserClick(user.authId, user.username) },
+        modifier = Modifier.fillMaxWidth().clickable {
+            onUserClick(user.authId, user.username ?: "usuario")
+        },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Row(
@@ -134,15 +136,15 @@ fun TopUserCard(rank: Int, user: TopUserDto, onUserClick: (String, String) -> Un
             Spacer(modifier = Modifier.width(16.dp))
 
             Column {
-                Text("@${user.username}", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                Text("Puntuación: ${user.totalScore ?: 0}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                Text("@${user.username ?: "Usuario Desconocido"}", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                Text("Puntuación Total: ${user.totalScore ?: 0}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
             }
         }
     }
 }
 
 @Composable
-fun TopReviewCard(rank: Int, review: TopReviewDto, onShowClick: (String) -> Unit) {
+fun TopReviewCard(rank: Int, review: TopReviewDto, onReviewClick: (String) -> Unit) {
     val medalColor = when (rank) {
         1 -> Color(0xFFFFD700)
         2 -> Color(0xFFC0C0C0)
@@ -151,7 +153,9 @@ fun TopReviewCard(rank: Int, review: TopReviewDto, onShowClick: (String) -> Unit
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth().clickable { onShowClick(review.tvmazeId.toString()) },
+        modifier = Modifier.fillMaxWidth().clickable {
+            onReviewClick(review.reviewId)
+        },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -163,7 +167,7 @@ fun TopReviewCard(rank: Int, review: TopReviewDto, onShowClick: (String) -> Unit
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.Favorite, contentDescription = null, tint = Color.Red, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("${review.likesCount}", fontWeight = FontWeight.Bold)
+                    Text("${review.likesCount ?: 0}", fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -172,7 +176,7 @@ fun TopReviewCard(rank: Int, review: TopReviewDto, onShowClick: (String) -> Unit
 
             Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Por @${review.username}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                Text("Por @${review.username ?: "Usuario"}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.Star, contentDescription = null, tint = Color(0xFFFFCC00), modifier = Modifier.size(14.dp))
                     Text(" ${review.rating}", style = MaterialTheme.typography.labelSmall)
