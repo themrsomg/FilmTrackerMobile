@@ -38,6 +38,7 @@ fun NotificationsScreen(
 ) {
     LaunchedEffect(Unit) {
         viewModel.fetchNotifications()
+        viewModel.fetchUnreadCount()
     }
 
     Scaffold(
@@ -50,9 +51,12 @@ fun NotificationsScreen(
                     }
                 },
                 actions = {
-                    if (viewModel.unreadCount > 0) {
-                        IconButton(onClick = { viewModel.markAllAsRead() }) {
-                            Icon(Icons.Default.Checklist, contentDescription = "Marcar todo como leído")
+                    val hasUnread = viewModel.notifications.any { !it.isRead }
+                    if (hasUnread) {
+                        TextButton(onClick = { viewModel.markAllAsRead() }) {
+                            Icon(Icons.Default.Checklist, contentDescription = null)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Marcar leídas")
                         }
                     }
                 },
