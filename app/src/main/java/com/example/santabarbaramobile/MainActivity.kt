@@ -266,6 +266,9 @@ fun AppNavigation(tokenManager: TokenManager) {
                 },
                 onNavigateToUserReviews = {
                     targetId -> navController.navigate("user_reviews/$targetId")
+                },
+                onShowClick = { tvmazeId ->
+                    navController.navigate("show_detail/$tvmazeId")
                 }
             )
         }

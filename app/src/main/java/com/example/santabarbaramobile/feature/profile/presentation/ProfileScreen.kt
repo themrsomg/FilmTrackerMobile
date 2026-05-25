@@ -1,6 +1,7 @@
 package com.example.santabarbaramobile.feature.profile.presentation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -71,7 +72,8 @@ fun ProfileScreen(
     onNavigateToMyReports: () -> Unit,
     onNavigateToEditProfile: () -> Unit,
     onNavigateToUserReviews: (String) -> Unit,
-    onNavigateToConfirm: (String) -> Unit
+    onNavigateToConfirm: (String) -> Unit,
+    onShowClick: (Int) -> Unit
 ) {
     val state = viewModel.uiState
 
@@ -111,7 +113,8 @@ fun ProfileScreen(
                     onSuspendUser = { days -> viewModel.suspendCurrentUser(days) },
                     onBanUser = { viewModel.banCurrentUser() },
                     onUnbanUser = { viewModel.unbanCurrentUser() },
-                    onReportUser = { reason, desc -> viewModel.reportCurrentUser(reason, desc) }
+                    onReportUser = { reason, desc -> viewModel.reportCurrentUser(reason, desc) },
+                    onShowClick = onShowClick
                 )
             }
         }
@@ -132,7 +135,8 @@ private fun ProfileContent(
     onSuspendUser: (Long) -> Unit,
     onBanUser: () -> Unit,
     onUnbanUser: () -> Unit,
-    onReportUser: (String, String) -> Unit
+    onReportUser: (String, String) -> Unit,
+    onShowClick: (Int) -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -460,11 +464,11 @@ private fun ProfileContent(
             horizontalAlignment = Alignment.Start
         ) {
             if (state.isOwnProfile) {
-                CarouselSection(title = "Mi Watchlist", items = state.watchlist)
+                CarouselSection(title = "Mi Watchlist", items = state.watchlist, onShowClick = onShowClick)
                 Spacer(modifier = Modifier.height(24.dp))
-                CarouselSection(title = "Mis Favoritos", items = state.favorites)
+                CarouselSection(title = "Mis Favoritos", items = state.favorites, onShowClick = onShowClick)
             } else {
-                CarouselSection(title = "Favoritos de @${state.username}", items = state.favorites)
+                CarouselSection(title = "Favoritos de @${state.username}", items = state.favorites, onShowClick = onShowClick)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -527,7 +531,7 @@ private fun ProfileRow(label: String, value: String) {
 }
 
 @Composable
-fun CarouselSection(title: String, items: List<LibraryItemDto>) {
+fun CarouselSection(title: String, items: List<LibraryItemDto>, onShowClick: (Int) -> Unit) {
     Text(
         text = title,
         style = MaterialTheme.typography.titleLarge,
@@ -546,18 +550,19 @@ fun CarouselSection(title: String, items: List<LibraryItemDto>) {
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(items) { item ->
-                ShowCard(item)
+                ShowCard(item = item, onClick = { onShowClick(item.tvmazeId) })
             }
         }
     }
 }
 
 @Composable
-fun ShowCard(item: LibraryItemDto) {
+fun ShowCard(item: LibraryItemDto, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .width(120.dp)
-            .height(180.dp),
+            .height(180.dp)
+            .clickable { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(8.dp)
     ) {
