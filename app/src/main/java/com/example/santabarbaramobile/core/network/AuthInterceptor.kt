@@ -10,17 +10,20 @@ class AuthInterceptor @Inject constructor(
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
-
         val token = tokenManager.getToken()
 
-        if (token.isNullOrEmpty()) {
-            return chain.proceed(originalRequest)
+        val requestBuilder = originalRequest.newBuilder()
+
+        if (!token.isNullOrEmpty()) {
+            requestBuilder.addHeader("Authorization", "Bearer $token")
         }
 
-        val newRequest = originalRequest.newBuilder()
-            .addHeader("Authorization", "Bearer $token")
-            .build()
+        val response = chain.proceed(requestBuilder.build())
 
-        return chain.proceed(newRequest)
+        if (response.code == 401 || response.code == 403) {
+            tokenManager.triggerSessionExpired()
+        }
+
+        return response
     }
 }

@@ -8,6 +8,7 @@ import androidx.security.crypto.MasterKey
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -76,5 +77,20 @@ class TokenManager @Inject constructor(@ApplicationContext context: Context) {
         prefs.edit().remove("JWT_TOKEN").remove("USER_EMAIL").apply()
         _isEmailVerified.value = false
         Log.d("TokenManager", "Sesión limpiada localmente.")
+    }
+
+    sealed class AuthEvent {
+        object SessionExpired : AuthEvent()
+    }
+
+    private val _authEvent = kotlinx.coroutines.flow.MutableSharedFlow<AuthEvent>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
+    )
+    val authEvent = _authEvent.asSharedFlow()
+
+    fun triggerSessionExpired() {
+        clearToken()
+        _authEvent.tryEmit(AuthEvent.SessionExpired)
     }
 }

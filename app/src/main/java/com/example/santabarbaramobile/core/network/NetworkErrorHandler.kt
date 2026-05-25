@@ -1,20 +1,20 @@
 package com.example.santabarbaramobile.core.network
 
-import android.util.Log
-
 object NetworkErrorHandler {
-    fun isCritical(throwable: Throwable): Boolean {
-        val errorMessage = throwable.message ?: ""
-        return errorMessage.contains("401") || errorMessage.contains("403")
-    }
-
     fun getFriendlyMessage(throwable: Throwable): String {
+        val msg = throwable.message?.lowercase() ?: ""
         return when {
-            throwable.message?.contains("Failed to connect") == true ->
+            msg.contains("failed to connect") || msg.contains("timeout") || msg.contains("socket") ->
                 "El servidor está temporalmente fuera de servicio. Intenta más tarde."
-            throwable.message?.contains("404") == true ->
+            msg.contains("500") || msg.contains("502") || msg.contains("503") ->
+                "Uno de nuestros servicios está en mantenimiento. Intenta en unos minutos."
+            msg.contains("404") ->
                 "No pudimos encontrar la información solicitada."
-            else -> "Algo salió mal. Por favor, intenta de nuevo."
+            msg.contains("409") ->
+                "Esta acción ya fue procesada o el registro ya existe."
+            msg.contains("401") || msg.contains("403") ->
+                "Tu sesión ha expirado por seguridad."
+            else -> "Algo salió mal, intenta de nuevo más tarde."
         }
     }
 }
