@@ -3,10 +3,12 @@ package com.example.santabarbaramobile.feature.auth.presentation
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.santabarbaramobile.core.network.NetworkErrorHandler
 import com.example.santabarbaramobile.feature.auth.domain.LoginRequest
 import com.example.santabarbaramobile.feature.auth.domain.RegisterRequest
 import com.example.santabarbaramobile.feature.auth.domain.AuthRepository
 import com.example.santabarbaramobile.core.security.TokenManager
+import com.example.santabarbaramobile.feature.profile.domain.HomeUiState
 import com.example.santabarbaramobile.feature.shows.domain.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -81,7 +83,8 @@ class RegisterViewModel @Inject constructor(
                         }
                 }
                 .onFailure { error ->
-                    _uiState.value = ResourceState.Error(error.message ?: "No se pudo completar el registro")
+                    val friendlyError = NetworkErrorHandler.getFriendlyMessage(error)
+                    _uiState.value = ResourceState.Error(friendlyError)
                 }
         }
     }

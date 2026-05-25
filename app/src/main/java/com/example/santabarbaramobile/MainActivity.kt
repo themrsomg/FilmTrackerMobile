@@ -12,6 +12,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -21,6 +22,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.santabarbaramobile.core.security.TokenManager
 import com.example.santabarbaramobile.feature.profile.presentation.AdminDashboardScreen
 import com.example.santabarbaramobile.feature.auth.presentation.ChangePasswordScreen
 import com.example.santabarbaramobile.feature.auth.presentation.ConfirmAccountScreen
@@ -49,23 +51,39 @@ import com.example.santabarbaramobile.core.ui.AuthScreen
 import com.example.santabarbaramobile.core.theme.SantaBarbaraMobileTheme
 import com.example.santabarbaramobile.feature.reviews.presentation.UserReviewsScreen
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var tokenManager: TokenManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             SantaBarbaraMobileTheme {
-                AppNavigation()
+                AppNavigation(tokenManager)
             }
         }
     }
 }
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(tokenManager: TokenManager) {
     val navController = rememberNavController()
-
+    LaunchedEffect(Unit) {
+        tokenManager.authEvent.collect { event ->
+            when (event) {
+                is TokenManager.AuthEvent.SessionExpired -> {
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            }
+        }
+    }
     NavHost(
         navController = navController,
         startDestination = AuthScreen.Login.route
@@ -271,8 +289,8 @@ fun AppNavigation() {
                 onUserClick = { userId, username ->
                     navController.navigate("profile?userId=$userId&username=$username")
                 },
-                onShowClick = { showId ->
-                    navController.navigate("show_detail/$showId")
+                onReviewClick = { reviewId ->
+                    navController.navigate("review_detail/$reviewId")
                 }
             )
         }

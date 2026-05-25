@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import javax.inject.Inject
 import android.util.Base64
+import com.example.santabarbaramobile.core.network.NetworkErrorHandler
 
 @HiltViewModel
 class MainHubViewModel @Inject constructor(
@@ -56,7 +57,8 @@ class MainHubViewModel @Inject constructor(
             showRepository.getHome().onSuccess { homeData ->
                 _uiState.value = HomeUiState.Success(homeData)
             }.onFailure { error ->
-                _uiState.value = HomeUiState.Error(error.message ?: "Error al cargar catálogo")
+                val friendlyError = NetworkErrorHandler.getFriendlyMessage(error)
+                _uiState.value = HomeUiState.Error(friendlyError)
             }
         }
     }

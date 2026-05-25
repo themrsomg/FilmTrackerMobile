@@ -75,7 +75,7 @@ class AdminDashboardViewModel @Inject constructor(
                     reportsList = response.reports ?: emptyList()
                 }
                 .onFailure {
-                    errorMessage = "Error al obtener reportes: ${it.message}"
+                    errorMessage = "Error al obtener reportes."
                 }
             isReportsLoading = false
         }
@@ -96,7 +96,7 @@ class AdminDashboardViewModel @Inject constructor(
                 loadDashboardStats()
             }
                 .onFailure {
-                    errorMessage = "Fallo al aplicar acción: ${it.message}"
+                    errorMessage = "Fallo al aplicar acción."
                 }
             isReportsLoading = false
         }

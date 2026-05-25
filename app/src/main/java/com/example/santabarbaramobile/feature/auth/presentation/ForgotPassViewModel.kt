@@ -3,8 +3,10 @@ package com.example.santabarbaramobile.feature.auth.presentation
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.santabarbaramobile.core.network.NetworkErrorHandler
 import com.example.santabarbaramobile.feature.auth.domain.AuthRepository
 import com.example.santabarbaramobile.feature.auth.domain.ForgotPassState
+import com.example.santabarbaramobile.feature.profile.domain.HomeUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,9 +36,8 @@ class ForgotPassViewModel @Inject constructor(
                     _uiState.value = ForgotPassState.Success
                 }
                 .onFailure { error ->
-                    _uiState.value = ForgotPassState.Error(
-                        error.message ?: "No se pudo procesar la solicitud"
-                    )
+                    val friendlyError = NetworkErrorHandler.getFriendlyMessage(error)
+                    _uiState.value = ForgotPassState.Error(friendlyError)
                 }
         }
     }
