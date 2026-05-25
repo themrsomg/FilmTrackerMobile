@@ -124,15 +124,22 @@ fun MainHubScreen(
 
                 SearchBar(
                     query = searchQuery,
-                    onQueryChange = { viewModel.onSearchQueryChange(it) },
-                    onSearch = { viewModel.setSearchActive(false) },
+                    onQueryChange = { newQuery ->
+                        if (newQuery.length <= 30) {
+                            viewModel.onSearchQueryChange(newQuery)
+                        }
+                    },
+                    onSearch = { /* Vacío para que no se oculte */},
                     active = isSearchActive,
                     onActiveChange = { viewModel.setSearchActive(it) },
                     placeholder = { Text("Buscar series o usuarios...") },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
                     trailingIcon = {
                         if (isSearchActive) {
-                            IconButton(onClick = { viewModel.setSearchActive(false) }) {
+                            IconButton(onClick = {
+                                viewModel.onSearchQueryChange("")
+                                viewModel.setSearchActive(false)
+                            }) {
                                 Icon(Icons.Default.Close, contentDescription = "Cerrar búsqueda")
                             }
                         }
