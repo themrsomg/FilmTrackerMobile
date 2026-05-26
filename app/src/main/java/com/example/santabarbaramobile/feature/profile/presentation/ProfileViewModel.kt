@@ -83,6 +83,7 @@ class ProfileViewModel @Inject constructor(
                 var fetchedUsername = ""
                 var fetchedEmail = ""
                 var fetchedProfileImage: String? = null
+                var fetchedRole = "USER"
                 var profileError: String? = null
 
                 if (isOwnProfile) {
@@ -92,6 +93,17 @@ class ProfileViewModel @Inject constructor(
                             fetchedUsername = it.username
                             fetchedEmail = it.email ?: ""
                             fetchedProfileImage = it.profileImage
+                            fetchedRole = it.role?.uppercase() ?: "USER"
+                        }
+                        .onFailure { profileError = it.message }
+                } else if (!userId.isNullOrBlank()){
+                    userRepository.getUserById(userId)
+                        .onSuccess {
+                            fetchedName = it.name.orEmpty()
+                            fetchedUsername = it.username
+                            fetchedEmail = it.email ?: ""
+                            fetchedProfileImage = it.profileImage
+                            fetchedRole = it.role?.uppercase() ?: "USER"
                         }
                         .onFailure { profileError = it.message }
                 } else {
@@ -101,6 +113,7 @@ class ProfileViewModel @Inject constructor(
                             fetchedUsername = it.username
                             fetchedEmail = it.email ?: ""
                             fetchedProfileImage = it.profileImage
+                            fetchedRole = it.role?.uppercase() ?: "USER"
                         }
                         .onFailure { profileError = it.message }
                 }
@@ -127,6 +140,7 @@ class ProfileViewModel @Inject constructor(
                         username = fetchedUsername,
                         email = fetchedEmail,
                         profileImage = fetchedProfileImage,
+                        profileRole = fetchedRole,
                         isEmailVerified = if (isOwnProfile) tokenManager.isEmailVerified.value else false,
                         currentUserRole = roleFromToken,
                         watchlist = populatedWatchlist,

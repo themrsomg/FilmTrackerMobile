@@ -178,8 +178,7 @@ private fun ProfileContent(
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )
-
-            if (state.currentUserRole == "ADMIN") {
+            if (state.profileRole.equals("ADMIN", ignoreCase = true)) {
                 Spacer(modifier = Modifier.width(6.dp))
                 Badge(
                     containerColor = Color(0xFFFFD700),
