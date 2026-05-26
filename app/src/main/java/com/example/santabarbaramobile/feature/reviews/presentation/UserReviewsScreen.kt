@@ -10,11 +10,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.santabarbaramobile.core.ui.ReportDialog
 import com.example.santabarbaramobile.core.ui.ReviewCard
 import com.example.santabarbaramobile.feature.reviews.domain.ReviewDto
 
@@ -24,9 +28,12 @@ fun UserReviewsScreen(
     userId: String,
     viewModel: UserReviewsViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
-    onNavigateToReviewDetail: (Int) -> Unit // Recibe un Int (tvmazeId) para ir a la serie
+    onNavigateToReviewDetail: (Int) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    var showReportDialog by remember { mutableStateOf(false) }
+    var reviewToReport by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(userId) {
         viewModel.loadUserReviews(userId)
@@ -64,10 +71,26 @@ fun UserReviewsScreen(
                 else -> {
                     UserReviewsList(
                         reviews = uiState.reviews,
-                        onReviewClick = onNavigateToReviewDetail
+                        onReviewClick = onNavigateToReviewDetail,
+                        viewModel = viewModel,
+                        onReportRequest = { rId ->
+                            reviewToReport = rId
+                            showReportDialog = true
+                        }
                     )
                 }
             }
+        }
+        if (showReportDialog && reviewToReport != null) {
+            ReportDialog(
+                targetType = "REVIEW",
+                targetId = reviewToReport!!,
+                onDismiss = { showReportDialog = false },
+                onSubmit = { type, id, reason, desc ->
+                    showReportDialog = false
+                    viewModel.reportReview(id, reason, desc)
+                }
+            )
         }
     }
 }
@@ -75,7 +98,9 @@ fun UserReviewsScreen(
 @Composable
 fun UserReviewsList(
     reviews: List<ReviewDto>,
-    onReviewClick: (Int) -> Unit, // Espera el tvmazeId
+    onReviewClick: (Int) -> Unit,
+    viewModel: UserReviewsViewModel,
+    onReportRequest: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -94,12 +119,11 @@ fun UserReviewsList(
                 isAdmin = false,
                 onEditClick = { },
                 onDeleteClick = { },
-                onLikeClick = { _, _ -> /* Se puede implementar más adelante */ },
+                onLikeClick = { id, isLiked -> viewModel.toggleLike(id, isLiked) },
                 onCardClick = { onReviewClick(review.tvmazeId) },
-                onReportClick = { },
+                onReportClick = { onReportRequest(review.id) },
                 onRemoveImageClick = { }
             )
-
         }
     }
 }

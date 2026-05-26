@@ -1,6 +1,26 @@
 package com.example.santabarbaramobile.feature.reviews.domain
 
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
+import com.google.gson.annotations.JsonAdapter
 import com.google.gson.annotations.SerializedName
+import java.lang.reflect.Type
+
+class CountDeserializer : JsonDeserializer<Int> {
+    override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): Int {
+        return try {
+            when {
+                json == null -> 0
+                json.isJsonPrimitive -> json.asInt
+                json.isJsonArray -> json.asJsonArray.size()
+                else -> 0
+            }
+        } catch (e: Exception) {
+            0
+        }
+    }
+}
 
 data class ReviewDto(
     @SerializedName("_id", alternate = ["id"])
@@ -14,9 +34,11 @@ data class ReviewDto(
     val content: String,
     @SerializedName("imageUrl", alternate = ["image", "image_url", "profileImage"])
     val imageUrl: String?,
-    @SerializedName("likesCount", alternate = ["likes_count"])
+    @SerializedName("likesCount", alternate = ["likes_count", "likes"])
+    @JsonAdapter(CountDeserializer::class)
     val likesCount: Int = 0,
-    @SerializedName("commentsCount", alternate = ["comments_count"])
+    @SerializedName("commentsCount", alternate = ["comments_count", "comments"])
+    @JsonAdapter(CountDeserializer::class)
     val commentsCount: Int = 0,
     @SerializedName("createdAt", alternate = ["created_at"])
     val createdAt: String,
