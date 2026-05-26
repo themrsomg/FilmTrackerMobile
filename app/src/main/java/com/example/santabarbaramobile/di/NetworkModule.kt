@@ -1,6 +1,7 @@
 package com.example.santabarbaramobile.di
 
 import android.util.Log
+import com.example.santabarbaramobile.core.network.AuthInterceptor
 import com.example.santabarbaramobile.core.network.SantaBarbaraApi
 import com.example.santabarbaramobile.feature.auth.data.AuthApi
 import com.example.santabarbaramobile.feature.profile.data.UserLibraryApi
@@ -80,9 +81,13 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient {
+    fun provideOkHttpClient(
+        loggingInterceptor: HttpLoggingInterceptor,
+        authInterceptor: AuthInterceptor
+    ): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
+            .addInterceptor(authInterceptor)
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
             .writeTimeout(15, TimeUnit.SECONDS)
