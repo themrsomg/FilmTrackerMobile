@@ -167,7 +167,12 @@ fun FriendCard(user: UserDto, onClick: () -> Unit, onDelete: () -> Unit) {
                 if (user.profileImage.isNullOrBlank()) {
                     Icon(Icons.Filled.AccountCircle, contentDescription = null, modifier = Modifier.size(60.dp), tint = MaterialTheme.colorScheme.primary)
                 } else {
-                    AsyncImage(model = user.profileImage, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.size(60.dp).clip(CircleShape))
+                    AsyncImage(
+                        model = user.profileImage.replace("localhost", "10.0.2.2"),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(60.dp).clip(CircleShape)
+                    )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(user.name ?: "Usuario", fontWeight = FontWeight.Bold, maxLines = 1)
@@ -196,7 +201,12 @@ fun RequestCard(req: RequestUIItem, isIncoming: Boolean, onAccept: () -> Unit, o
             if (req.user.profileImage.isNullOrBlank()) {
                 Icon(Icons.Filled.AccountCircle, contentDescription = null, modifier = Modifier.size(48.dp))
             } else {
-                AsyncImage(model = req.user.profileImage, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.size(48.dp).clip(CircleShape))
+                AsyncImage(
+                    model = req.user.profileImage.replace("localhost", "10.0.2.2"),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(48.dp).clip(CircleShape)
+                )
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
