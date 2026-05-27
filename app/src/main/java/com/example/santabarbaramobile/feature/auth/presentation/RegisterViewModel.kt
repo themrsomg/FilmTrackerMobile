@@ -50,7 +50,7 @@ class RegisterViewModel @Inject constructor(
         }
 
         if (!Regex("^[a-zA-Z0-9._]{3,30}$").matches(normalizedUsername)) {
-            _uiState.value = ResourceState.Error("El username debe tener entre 3 y 30 caracteres")
+            _uiState.value = ResourceState.Error("El usuario debe tener entre 3 y 30 caracteres y no contener espacios.")
             return
         }
 

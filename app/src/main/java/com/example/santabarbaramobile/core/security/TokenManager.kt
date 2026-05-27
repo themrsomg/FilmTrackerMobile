@@ -10,8 +10,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
+import android.util.Base64
 
 @Singleton
 class TokenManager @Inject constructor(@ApplicationContext context: Context) {
@@ -49,10 +51,17 @@ class TokenManager @Inject constructor(@ApplicationContext context: Context) {
             .putString("JWT_TOKEN", token)
             .putString("USER_EMAIL", email)
             .apply()
-
-        val matchesLocalVerification = prefs.getBoolean("VERIFIED_$email", false)
-        _isEmailVerified.value = matchesLocalVerification
-        Log.d("TokenManager", "Sesión guardada para $email. Estado de verificación local: $matchesLocalVerification")
+        try {
+            val parts = token.split(".")
+            if (parts.size == 3) {
+                val payload = String(android.util.Base64.decode(parts[1], android.util.Base64.URL_SAFE))
+                val json = org.json.JSONObject(payload)
+                val isVerified = json.optBoolean("emailVerified", false)
+                updateVerificationStatus(email, isVerified)
+            }
+        } catch (e: Exception) {
+            updateVerificationStatus(email, false)
+        }
     }
 
     fun updateVerificationStatus(email: String, serverStatus: Boolean) {
