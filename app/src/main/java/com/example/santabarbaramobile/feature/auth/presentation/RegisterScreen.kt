@@ -1,5 +1,6 @@
 package com.example.santabarbaramobile.feature.auth.presentation
 
+import android.widget.Toast // SOLUCIÓN: Importación del Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,6 +10,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext // SOLUCIÓN: Importación del Context
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -24,6 +26,10 @@ fun RegisterScreen(
     onNavigateToConfirm: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val verificationState by viewModel.verificationState.collectAsStateWithLifecycle()
+
+    val context = LocalContext.current
+
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
@@ -36,6 +42,22 @@ fun RegisterScreen(
         if (uiState is ResourceState.Success) {
             registeredEmail = (uiState as ResourceState.Success).data
             showVerifyDialog = true
+        }
+    }
+
+    LaunchedEffect(verificationState) {
+        when (verificationState) {
+            is ResourceState.Success -> {
+                viewModel.resetStates()
+                showVerifyDialog = false
+                onNavigateToConfirm(registeredEmail)
+            }
+            is ResourceState.Error -> {
+                val errorMsg = (verificationState as ResourceState.Error).message
+                Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+                viewModel.resetStates()
+            }
+            else -> {}
         }
     }
 
@@ -146,8 +168,9 @@ fun RegisterScreen(
                     ) {
                         if (uiState is ResourceState.Loading) {
                             CircularProgressIndicator(
-                                modifier = Modifier.height(24.dp),
-                                color = MaterialTheme.colorScheme.onPrimary
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                strokeWidth = 2.dp
                             )
                         } else {
                             Text("Registrarme")
@@ -163,33 +186,44 @@ fun RegisterScreen(
                         )
                     }
                 }
-                if (showVerifyDialog) {
-                    AlertDialog(
-                        onDismissRequest = { /* No dejamos que lo cierre tocando afuera */ },
-                        title = { Text("¡Registro Exitoso!") },
-                        text = { Text("Tu cuenta ha sido creada correctamente.\n\nPara poder escribir reseñas y comentarios, necesitas verificar tu correo electrónico. ¿Deseas hacerlo ahora?") },
-                        confirmButton = {
-                            Button(
-                                onClick = {
-                                    showVerifyDialog = false
-                                    onNavigateToConfirm(registeredEmail)
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                            ) {
-                                Text("Verificar Ahora")
-                            }
-                        },
-                        dismissButton = {
-                            TextButton(onClick = {
-                                showVerifyDialog = false
-                                onNavigateToMainHub()
-                            }) {
-                                Text("Más tarde")
-                            }
-                        }
-                    )
-                }
             }
+        }
+
+        if (showVerifyDialog) {
+            AlertDialog(
+                onDismissRequest = { /* No dejamos que lo cierre tocando afuera */ },
+                title = { Text("¡Registro Exitoso!") },
+                text = { Text("Tu cuenta ha sido creada correctamente.\n\nPara poder escribir reseñas y comentarios, necesitas verificar tu correo electrónico. ¿Deseas hacerlo ahora?") },
+                confirmButton = {
+                    Button(
+                        onClick = { viewModel.sendVerificationCode(registeredEmail) },
+                        enabled = verificationState !is ResourceState.Loading,
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    ) {
+                        if (verificationState is ResourceState.Loading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text("Verificar Ahora")
+                        }
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            showVerifyDialog = false
+                            viewModel.resetStates()
+                            onNavigateToMainHub()
+                        },
+                        enabled = verificationState !is ResourceState.Loading
+                    ) {
+                        Text("Más tarde")
+                    }
+                }
+            )
         }
     }
 }

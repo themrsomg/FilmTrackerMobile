@@ -8,7 +8,6 @@ import com.example.santabarbaramobile.feature.auth.domain.LoginRequest
 import com.example.santabarbaramobile.feature.auth.domain.RegisterRequest
 import com.example.santabarbaramobile.feature.auth.domain.AuthRepository
 import com.example.santabarbaramobile.core.security.TokenManager
-import com.example.santabarbaramobile.feature.profile.domain.HomeUiState
 import com.example.santabarbaramobile.feature.shows.domain.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +24,9 @@ class RegisterViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<ResourceState<String>?>(null)
     val uiState: StateFlow<ResourceState<String>?> = _uiState.asStateFlow()
+
+    private val _verificationState = MutableStateFlow<ResourceState<Unit>?>(null)
+    val verificationState: StateFlow<ResourceState<Unit>?> = _verificationState.asStateFlow()
 
     fun performRegistration(
         name: String,
@@ -87,5 +89,24 @@ class RegisterViewModel @Inject constructor(
                     _uiState.value = ResourceState.Error(friendlyError)
                 }
         }
+    }
+
+    fun sendVerificationCode(email: String) {
+        viewModelScope.launch {
+            _verificationState.value = ResourceState.Loading
+            repository.resendVerification(email)
+                .onSuccess {
+                    _verificationState.value = ResourceState.Success(Unit)
+                }
+                .onFailure { error ->
+                    val friendlyError = NetworkErrorHandler.getFriendlyMessage(error)
+                    _verificationState.value = ResourceState.Error(friendlyError)
+                }
+        }
+    }
+
+    fun resetStates() {
+        _uiState.value = null
+        _verificationState.value = null
     }
 }
