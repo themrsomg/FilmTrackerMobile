@@ -85,6 +85,10 @@ class ReviewViewModel @Inject constructor(
         content: String,
         imageUri: Uri?
     ) {
+        if (!isEmailVerifiedGlobal.value) {
+            errorMessage = "Debes verificar tu correo para poder publicar reseñas."
+            return
+        }
         viewModelScope.launch {
             isLoading = true
             val imagePart = imageUri?.let { uriToMultipart(context, it) }

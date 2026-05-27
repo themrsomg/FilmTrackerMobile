@@ -14,6 +14,7 @@ import com.example.santabarbaramobile.feature.auth.domain.LoginRequest
 import com.example.santabarbaramobile.feature.auth.domain.LoginResponse
 import com.example.santabarbaramobile.feature.auth.domain.RegisterRequest
 import com.example.santabarbaramobile.feature.auth.domain.RegisterResponse
+import com.example.santabarbaramobile.feature.auth.domain.ResendVerificationRequest
 import com.example.santabarbaramobile.feature.auth.domain.VerifyEmailRequest
 import retrofit2.Response
 import retrofit2.http.Body
@@ -91,4 +92,9 @@ interface AuthApi {
         @Header("Authorization") token: String,
         @Path("authId") authId: String
     ): Response<Unit>
+
+    @POST("api/auth/resend-verification")
+    suspend fun resendVerification(
+        @Body request: ResendVerificationRequest
+    ): retrofit2.Response<Unit>
 }

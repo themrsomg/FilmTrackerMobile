@@ -20,18 +20,22 @@ import com.example.santabarbaramobile.feature.shows.domain.ResourceState
 fun RegisterScreen(
     viewModel: RegisterViewModel,
     onNavigateBack: () -> Unit,
-    onNavigateToMainHub: () -> Unit
+    onNavigateToMainHub: () -> Unit,
+    onNavigateToConfirm: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    var showVerifyDialog by remember { mutableStateOf(false) }
+    var registeredEmail by remember { mutableStateOf("") }
+
     LaunchedEffect(uiState) {
         if (uiState is ResourceState.Success) {
-            onNavigateToMainHub()
+            registeredEmail = (uiState as ResourceState.Success).data
+            showVerifyDialog = true
         }
     }
 
@@ -158,6 +162,32 @@ fun RegisterScreen(
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
+                }
+                if (showVerifyDialog) {
+                    AlertDialog(
+                        onDismissRequest = { /* No dejamos que lo cierre tocando afuera */ },
+                        title = { Text("¡Registro Exitoso!") },
+                        text = { Text("Tu cuenta ha sido creada correctamente.\n\nPara poder escribir reseñas y comentarios, necesitas verificar tu correo electrónico. ¿Deseas hacerlo ahora?") },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    showVerifyDialog = false
+                                    onNavigateToConfirm(registeredEmail)
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                            ) {
+                                Text("Verificar Ahora")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = {
+                                showVerifyDialog = false
+                                onNavigateToMainHub()
+                            }) {
+                                Text("Más tarde")
+                            }
+                        }
+                    )
                 }
             }
         }

@@ -100,8 +100,11 @@ class ReviewDetailViewModel @Inject constructor(
     }
 
     fun postComment(context: Context, reviewId: String, content: String, imageUri: Uri?) {
+        if (!isEmailVerified) {
+            errorMessage = "Debes verificar tu correo para poder comentar."
+            return
+        }
         if (content.isBlank() && imageUri == null) return
-
         viewModelScope.launch {
             isLoading = true
             val imagePart = imageUri?.let { uriToMultipart(context, it) }

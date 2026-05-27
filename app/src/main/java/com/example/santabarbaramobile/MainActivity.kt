@@ -123,6 +123,11 @@ fun AppNavigation(tokenManager: TokenManager) {
                     navController.navigate("main_hub") {
                         popUpTo(AuthScreen.Login.route) { inclusive = true }
                     }
+                },
+                onNavigateToConfirm = { email ->
+                    navController.navigate("confirm_account/$email") {
+                        popUpTo(AuthScreen.Login.route) { inclusive = true }
+                    }
                 }
             )
         }
@@ -137,8 +142,11 @@ fun AppNavigation(tokenManager: TokenManager) {
             ConfirmAccountScreen(
                 email = email,
                 viewModel = confirmViewModel,
-                onVerificationSuccess = {
-                    navController.popBackStack()
+                onNavigateToLogin = {
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 },
                 onNavigateBack = {
                     navController.popBackStack()

@@ -7,6 +7,7 @@ import com.example.santabarbaramobile.core.security.TokenManager
 import com.example.santabarbaramobile.feature.auth.domain.ConfirmAccountState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
+import com.example.santabarbaramobile.core.network.NetworkErrorHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -31,11 +32,11 @@ class ConfirmAccountViewModel @Inject constructor(
             _uiState.value = ConfirmAccountState.Loading
             repository.verifyEmail(email, code)
                 .onSuccess {
-                    tokenManager.markAsVerifiedLocally()
-                    _uiState.value = ConfirmAccountState.Success
+                    tokenManager.clearToken()
+                    _uiState.value = ConfirmAccountState.Success("Cuenta verificada con éxito. Redirigiendo al Login...")
                 }
                 .onFailure { error ->
-                    _uiState.value = ConfirmAccountState.Error(error.message ?: "Código incorrecto")
+                    _uiState.value = ConfirmAccountState.Error(NetworkErrorHandler.getFriendlyMessage(error))
                 }
         }
     }
@@ -43,8 +44,17 @@ class ConfirmAccountViewModel @Inject constructor(
     fun resendCode(email: String) {
         viewModelScope.launch {
             _uiState.value = ConfirmAccountState.Loading
-            delay(1500)
-            _uiState.value = ConfirmAccountState.Idle
+            repository.resendVerification(email)
+                .onSuccess {
+                    _uiState.value = ConfirmAccountState.ResendSuccess("Se ha reenviado el código a tu correo.")
+                }
+                .onFailure { error ->
+                    _uiState.value = ConfirmAccountState.Error(NetworkErrorHandler.getFriendlyMessage(error))
+                }
         }
+    }
+
+    fun resetState() {
+        _uiState.value = ConfirmAccountState.Idle
     }
 }

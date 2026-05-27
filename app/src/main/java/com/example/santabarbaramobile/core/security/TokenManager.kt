@@ -56,8 +56,8 @@ class TokenManager @Inject constructor(@ApplicationContext context: Context) {
     }
 
     fun updateVerificationStatus(email: String, serverStatus: Boolean) {
-        val matchesLocalVerification = prefs.getBoolean("VERIFIED_$email", false)
-        _isEmailVerified.value = matchesLocalVerification
+        prefs.edit().putBoolean("VERIFIED_$email", serverStatus).apply()
+        _isEmailVerified.value = serverStatus
     }
 
     fun markAsVerifiedLocally() {

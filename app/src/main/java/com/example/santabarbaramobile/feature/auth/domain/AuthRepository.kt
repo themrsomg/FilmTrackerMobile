@@ -213,4 +213,17 @@ class AuthRepository @Inject constructor(
             Result.failure(e)
         }
     }
+
+    suspend fun resendVerification(email: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val response = authApi.resendVerification(ResendVerificationRequest(email))
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("No se pudo reenviar el código."))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

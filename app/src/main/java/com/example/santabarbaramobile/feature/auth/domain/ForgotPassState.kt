@@ -6,3 +6,7 @@ sealed class ForgotPassState {
     object Success : ForgotPassState()
     data class Error(val message: String) : ForgotPassState()
 }
+
+data class ResendVerificationRequest(
+    val email: String
+)

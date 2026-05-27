@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -16,13 +17,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.santabarbaramobile.feature.auth.domain.ConfirmAccountState
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfirmAccountScreen(
     email: String,
     viewModel: ConfirmAccountViewModel,
-    onVerificationSuccess: () -> Unit,
+    onNavigateToLogin: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -30,8 +32,16 @@ fun ConfirmAccountScreen(
     val context = LocalContext.current
 
     LaunchedEffect(state) {
-        if (state is ConfirmAccountState.Success) {
-            onVerificationSuccess()
+        when (val currentState = state) {
+            is ConfirmAccountState.Success -> {
+                delay(2500)
+                onNavigateToLogin()
+            }
+            is ConfirmAccountState.ResendSuccess -> {
+                Toast.makeText(context, currentState.message, Toast.LENGTH_LONG).show()
+                viewModel.resetState()
+            }
+            else -> {}
         }
     }
 
@@ -93,7 +103,16 @@ fun ConfirmAccountScreen(
                 Text(
                     text = (state as ConfirmAccountState.Error).message,
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(top = 8.dp),
+                    textAlign = TextAlign.Center
+                )
+            } else if (state is ConfirmAccountState.Success) {
+                Text(
+                    text = (state as ConfirmAccountState.Success).message,
+                    color = Color(0xFF4CAF50),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(top = 8.dp),
+                    textAlign = TextAlign.Center
                 )
             }
 
