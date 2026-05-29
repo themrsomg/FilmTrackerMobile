@@ -16,6 +16,7 @@ import com.example.santabarbaramobile.feature.auth.domain.RegisterRequest
 import com.example.santabarbaramobile.feature.auth.domain.RegisterResponse
 import com.example.santabarbaramobile.feature.auth.domain.ResendVerificationRequest
 import com.example.santabarbaramobile.feature.auth.domain.VerifyEmailRequest
+import com.example.santabarbaramobile.feature.profile.domain.AccountStatusDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -67,11 +68,16 @@ interface AuthApi {
         @Header("Authorization") token: String
     ): Response<AdminStatsResponse<AuthStatsDto>>
 
+    @POST("api/auth/resend-verification")
+    suspend fun resendVerification(
+        @Body request: ResendVerificationRequest
+    ): retrofit2.Response<Unit>
+
     @GET("api/auth/admin/users/{authId}/status")
     suspend fun getAccountStatus(
         @Header("Authorization") token: String,
         @Path("authId") authId: String
-    ): Response<AccountStatusResponse>
+    ): Response<AccountStatusDto>
 
     @PATCH("api/auth/admin/users/{authId}/suspend")
     suspend fun suspendUser(
@@ -92,9 +98,4 @@ interface AuthApi {
         @Header("Authorization") token: String,
         @Path("authId") authId: String
     ): Response<Unit>
-
-    @POST("api/auth/resend-verification")
-    suspend fun resendVerification(
-        @Body request: ResendVerificationRequest
-    ): retrofit2.Response<Unit>
 }

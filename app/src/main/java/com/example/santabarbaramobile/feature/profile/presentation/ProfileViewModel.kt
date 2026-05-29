@@ -84,6 +84,7 @@ class ProfileViewModel @Inject constructor(
                 var fetchedEmail = ""
                 var fetchedProfileImage: String? = null
                 var fetchedRole = "USER"
+                var fetchedCreatedAt: String? = null
                 var profileError: String? = null
 
                 if (isOwnProfile) {
@@ -94,6 +95,7 @@ class ProfileViewModel @Inject constructor(
                             fetchedEmail = it.email ?: ""
                             fetchedProfileImage = it.profileImage
                             fetchedRole = it.role?.uppercase() ?: "USER"
+                            fetchedCreatedAt = it.createdAt
                         }
                         .onFailure { profileError = it.message }
                 } else if (!userId.isNullOrBlank()){
@@ -147,8 +149,17 @@ class ProfileViewModel @Inject constructor(
                         favorites = populatedFavorites,
                         targetAuthId = userId ?: myOwnAuthId,
                         friendshipStatus = fetchedStatus,
+                        createdAt = fetchedCreatedAt,
                         isLoading = false
                     )
+                    if (isOwnProfile && myOwnAuthId.isNotEmpty()) {
+                        authRepository.getAccountStatus(myOwnAuthId).onSuccess { statusDto ->
+                            uiState = uiState.copy(
+                                ownAccountStatus = statusDto.accountStatus ?: "ACTIVE",
+                                ownSuspendedUntil = statusDto.suspendedUntil
+                            )
+                        }
+                    }
                     if (!isOwnProfile && roleFromToken == "ADMIN" && userId != null) {
                         authRepository.getAccountStatus(userId).onSuccess { statusDto ->
                             uiState = uiState.copy(targetAccountStatus = statusDto.accountStatus ?: "ACTIVE")

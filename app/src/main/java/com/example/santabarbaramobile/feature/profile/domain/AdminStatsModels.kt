@@ -31,7 +31,22 @@ data class AdminDashboardState(
     val modStats: ModerationStatsDto? = null,
     val reportsList: List<AdminReportDto> = emptyList(),
     val searchResults: List<UserDto> = emptyList(),
+    val userDetailsMap: Map<String, UserDetailData> = emptyMap(),
     val currentFilter: String = "PENDING",
     val errorMessage: String? = null,
     val successMessage: String? = null
+)
+
+data class AdminUserDetailDto(
+    val name: String?,
+    val email: String?,
+    val isEmailVerified: Boolean?,
+    val role: String?,
+    val createdAt: String?,
+    val profileImage: String?
+)
+
+data class UserDetailData(
+    val details: AdminUserDetailDto?,
+    val status: AccountStatusDto?
 )

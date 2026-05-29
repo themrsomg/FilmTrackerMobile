@@ -34,7 +34,8 @@ data class AdminReportDto(
     val status: String,
     @SerializedName("target_snapshot") val targetSnapshot: Map<String, Any>?,
     val availableActions: List<String>?,
-    @SerializedName("created_at") val createdAt: String
+    @SerializedName("created_at") val createdAt: String,
+    val adminNote: String? = null
 )
 
 data class AdminReportResponse(

@@ -167,8 +167,11 @@ class AuthRepository @Inject constructor(
             try {
                 val token = "Bearer ${tokenManager.getToken()}"
                 val res = authApi.getAccountStatus(token, authId)
-                if (res.isSuccessful && res.body()?.data != null) Result.success(res.body()!!.data)
-                else Result.failure(Exception("Error HTTP ${res.code()}"))
+                if (res.isSuccessful && res.body() != null) {
+                    Result.success(res.body()!!)
+                } else {
+                    Result.failure(Exception("Error HTTP ${res.code()}"))
+                }
             } catch (e: Exception) {
                 Result.failure(e)
             }

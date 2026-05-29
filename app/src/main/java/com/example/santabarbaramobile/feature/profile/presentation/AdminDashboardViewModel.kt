@@ -37,17 +37,13 @@ class AdminDashboardViewModel @Inject constructor(
                 .debounce(500L)
                 .filter { it.length >= 3 }
                 .distinctUntilChanged()
-                .collectLatest { query ->
-                    executeSearch(query)
-                }
+                .collectLatest { query -> executeSearch(query) }
         }
     }
 
     fun onSearchQueryChanged(query: String) {
         _searchQuery.value = query
-        if (query.isEmpty()) {
-            _uiState.update { it.copy(searchResults = emptyList()) }
-        }
+        if (query.isEmpty()) _uiState.update { it.copy(searchResults = emptyList()) }
     }
 
     private suspend fun executeSearch(query: String) {
@@ -56,6 +52,23 @@ class AdminDashboardViewModel @Inject constructor(
             _uiState.update { it.copy(searchResults = users, isSearching = false) }
         }.onFailure {
             _uiState.update { it.copy(isSearching = false, errorMessage = "Error en búsqueda") }
+        }
+    }
+
+    fun loadUserDetails(authId: String) {
+        if (_uiState.value.userDetailsMap.containsKey(authId)) return
+        viewModelScope.launch {
+            val detailsReq = async { adminRepository.getAdminUserDetails(authId) }
+            val statusReq = async { adminRepository.getAccountStatus(authId) }
+
+            val details = detailsReq.await().getOrNull()
+            val status = statusReq.await().getOrNull()
+
+            _uiState.update { state ->
+                val newMap = state.userDetailsMap.toMutableMap()
+                newMap[authId] = UserDetailData(details, status)
+                state.copy(userDetailsMap = newMap)
+            }
         }
     }
 
@@ -80,13 +93,11 @@ class AdminDashboardViewModel @Inject constructor(
     fun loadReports(status: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isReportsLoading = true, currentFilter = status, errorMessage = null) }
-            moderationRepository.getAdminReports(status, page = 1)
-                .onSuccess { response ->
-                    _uiState.update { it.copy(reportsList = response.reports ?: emptyList(), isReportsLoading = false) }
-                }
-                .onFailure {
-                    _uiState.update { it.copy(errorMessage = "Error al obtener reportes.", isReportsLoading = false) }
-                }
+            moderationRepository.getAdminReports(status, page = 1).onSuccess { response ->
+                _uiState.update { it.copy(reportsList = response.reports ?: emptyList(), isReportsLoading = false) }
+            }.onFailure {
+                _uiState.update { it.copy(errorMessage = "Error al obtener reportes.", isReportsLoading = false) }
+            }
         }
     }
 
@@ -109,20 +120,26 @@ class AdminDashboardViewModel @Inject constructor(
         }
     }
 
-    fun executeDirectUserAction(authId: String, action: String) {
+    fun executeDirectUserAction(authId: String, action: String, duration: String? = null) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             val result = when (action) {
-                "BAN" -> adminRepository.banUser(authId, "Baneado administrativamente por Desktop/Mobile")
+                "BAN" -> adminRepository.banUser(authId, "Baneado administrativamente por App Móvil")
+                "UNBAN" -> adminRepository.unbanUser(authId)
                 "REMOVE_PHOTO" -> adminRepository.removeProfilePhoto(authId)
+                "SUSPEND" -> adminRepository.suspendUser(authId, duration ?: "7_DAYS", "Suspensión desde panel móvil")
                 else -> Result.success(Unit)
             }
 
             result.onSuccess {
-                _uiState.update { it.copy(successMessage = "Acción directa aplicada.", isLoading = false) }
-                executeSearch(_searchQuery.value)
+                _uiState.update { state ->
+                    val newMap = state.userDetailsMap.toMutableMap()
+                    newMap.remove(authId)
+                    state.copy(successMessage = "Acción directa aplicada.", isLoading = false, userDetailsMap = newMap)
+                }
+                loadUserDetails(authId)
             }.onFailure {
-                _uiState.update { it.copy(errorMessage = "Error al aplicar acción al usuario.", isLoading = false) }
+                _uiState.update { it.copy(errorMessage = "Error al aplicar acción.", isLoading = false) }
             }
         }
     }

@@ -4,6 +4,7 @@ import com.example.santabarbaramobile.feature.profile.domain.AccountStatusDto
 import com.example.santabarbaramobile.feature.profile.domain.AdminActionRequestDto
 import com.example.santabarbaramobile.feature.profile.domain.AdminReportResponse
 import com.example.santabarbaramobile.feature.profile.domain.AdminStatsResponse
+import com.example.santabarbaramobile.feature.profile.domain.AdminUserDetailDto
 import com.example.santabarbaramobile.feature.profile.domain.BanRequestDto
 import com.example.santabarbaramobile.feature.profile.domain.ModerationStatsDto
 import com.example.santabarbaramobile.feature.profile.domain.ReportRequestDto
@@ -63,25 +64,11 @@ interface ModerationApi {
         @Query("q") query: String
     ): Response<List<UserDto>>
 
-    @GET("api/admin/users/{authId}/status")
-    suspend fun getAccountStatus(
+    @GET("api/admin/users/{authId}/details")
+    suspend fun getAdminUserDetails(
         @Header("Authorization") token: String,
         @Path("authId") authId: String
-    ): Response<AccountStatusDto>
-
-    @PATCH("api/admin/users/{authId}/suspend")
-    suspend fun suspendUser(
-        @Header("Authorization") token: String,
-        @Path("authId") authId: String,
-        @Body request: SuspendRequestDto
-    ): Response<Unit>
-
-    @PATCH("api/admin/users/{authId}/ban")
-    suspend fun banUser(
-        @Header("Authorization") token: String,
-        @Path("authId") authId: String,
-        @Body request: BanRequestDto
-    ): Response<Unit>
+    ): Response<AdminUserDetailDto>
 
     @DELETE("api/admin/users/{authId}/profile-photo")
     suspend fun removeProfilePhotoDirectly(

@@ -5,9 +5,11 @@ import com.example.santabarbaramobile.feature.profile.domain.UserDto
 import com.example.santabarbaramobile.feature.profile.domain.UserSearchResponse
 import com.example.santabarbaramobile.feature.auth.domain.ApiResponse
 import com.example.santabarbaramobile.feature.auth.domain.UserResponse
+import com.example.santabarbaramobile.feature.profile.domain.AdminUserDetailDto
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Multipart
@@ -15,6 +17,7 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface UsersApi {
 
@@ -45,4 +48,22 @@ interface UsersApi {
         @Header("Authorization") token: String,
         @Part photo: MultipartBody.Part
     ): Response<UserDto>
+
+    @GET("api/users/admin/search")
+    suspend fun searchUsersAdmin(
+        @Header("Authorization") token: String,
+        @Query("q") query: String
+    ): Response<ApiResponse<List<UserDto>>>
+
+    @GET("api/users/admin/users/{authId}")
+    suspend fun getAdminUserDetails(
+        @Header("Authorization") token: String,
+        @Path("authId") authId: String
+    ): Response<AdminUserDetailDto>
+
+    @DELETE("api/users/admin/users/{authId}/profile-photo")
+    suspend fun removeProfilePhotoDirectly(
+        @Header("Authorization") token: String,
+        @Path("authId") authId: String
+    ): Response<Unit>
 }

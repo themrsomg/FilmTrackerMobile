@@ -20,4 +20,7 @@ data class ProfileState(
     val targetAccountStatus: String = "ACTIVE",
     val banSuccessMessage: String? = null,
     val targetUserRole: String = "USER",
-    )
+    val createdAt: String? = null,
+    val ownAccountStatus: String = "ACTIVE",
+    val ownSuspendedUntil: String? = null,
+)

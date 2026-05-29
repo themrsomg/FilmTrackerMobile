@@ -59,7 +59,8 @@ data class UserResponse(
     @SerializedName("email") val email: String,
     @SerializedName("profileImage") val profileImage: String? = null,
     @SerializedName("isEmailVerified") val isEmailVerified: Boolean = false,
-    val role: String? = "USER"
+    val role: String? = "USER",
+    @SerializedName("createdAt") val createdAt: String? = null
 )
 
 data class LoginResponse(
