@@ -62,7 +62,15 @@ class AdminDashboardRepository @Inject constructor(
     suspend fun getAdminUserDetails(authId: String): Result<AdminUserDetailDto> = withContext(Dispatchers.IO) {
         try {
             val res = usersApi.getAdminUserDetails("Bearer ${tokenManager.getToken()}", authId)
-            if (res.isSuccessful && res.body() != null) Result.success(res.body()!!)
+            if (res.isSuccessful && res.body()?.data != null) Result.success(res.body()!!.data!!)
+                else Result.failure(Exception("Error ${res.code()}"))
+        } catch (e: Exception) { Result.failure(e) }
+    }
+
+    suspend fun getUserById(authId: String): Result<UserDto> = withContext(Dispatchers.IO) {
+        try {
+            val res = usersApi.getUserById(authId)
+            if (res.isSuccessful && res.body()?.data != null) Result.success(res.body()!!.data)
                 else Result.failure(Exception())
         } catch (e: Exception) { Result.failure(e) }
     }

@@ -153,7 +153,7 @@ class ProfileViewModel @Inject constructor(
                     createdAt = fetchedCreatedAt,
                     isLoading = false
                 )
-                if (isOwnProfile && myOwnAuthId.isNotEmpty()) {
+                if (isOwnProfile && myOwnAuthId.isNotEmpty() && roleFromToken == "ADMIN") {
                     authRepository.getAccountStatus(myOwnAuthId).onSuccess { statusDto ->
                         uiState = uiState.copy(
                             ownAccountStatus = statusDto.accountStatus ?: "ACTIVE",
@@ -274,6 +274,25 @@ class ProfileViewModel @Inject constructor(
                         isLoading = false,
                         error = "Error al reportar: Si ya lo reportaste antes, debes esperar la revisión."
                     )
+                }
+        }
+    }
+
+    fun removeTargetProfilePhoto() {
+        val targetId = uiState.targetAuthId
+        if (targetId.isEmpty()) return
+        viewModelScope.launch {
+            uiState = uiState.copy(isLoading = true)
+            authRepository.removeTargetProfilePhoto(targetId)
+                .onSuccess {
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        profileImage = null,
+                        banSuccessMessage = "Foto de perfil eliminada correctamente."
+                    )
+                }
+                .onFailure {
+                    uiState = uiState.copy(isLoading = false, error = "Error al quitar la foto: ${it.message}")
                 }
         }
     }

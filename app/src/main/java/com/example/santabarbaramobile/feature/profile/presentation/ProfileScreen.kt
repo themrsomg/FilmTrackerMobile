@@ -112,6 +112,7 @@ fun ProfileScreen(
                     onBanUser = { viewModel.banCurrentUser() },
                     onUnbanUser = { viewModel.unbanCurrentUser() },
                     onReportUser = { reason, desc -> viewModel.reportCurrentUser(reason, desc) },
+                    onRemoveProfilePhoto = { viewModel.removeTargetProfilePhoto() },
                     onShowClick = onShowClick
                 )
             }
@@ -133,6 +134,7 @@ private fun ProfileContent(
     onBanUser: () -> Unit,
     onUnbanUser: () -> Unit,
     onReportUser: (String, String) -> Unit,
+    onRemoveProfilePhoto: () -> Unit,
     onShowClick: (Int) -> Unit
 ) {
     Column(
@@ -142,23 +144,27 @@ private fun ProfileContent(
             .verticalScroll(rememberScrollState())
             .padding(vertical = 20.dp)
     ) {
-        if (state.profileImage.isNullOrBlank()) {
+        Box(
+            modifier = Modifier
+                .size(132.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            contentAlignment = Alignment.Center
+        ) {
             Icon(
                 imageVector = Icons.Filled.AccountCircle,
-                contentDescription = "Avatar",
-                modifier = Modifier.size(132.dp),
-                tint = MaterialTheme.colorScheme.primary
+                contentDescription = null,
+                modifier = Modifier.size(100.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
-        } else {
-            AsyncImage(
-                model = state.profileImage.replace("localhost", "10.0.2.2"),
-                contentDescription = "Avatar",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(132.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-            )
+            if (!state.profileImage.isNullOrBlank()) {
+                AsyncImage(
+                    model = state.profileImage.replace("localhost", "10.0.2.2"),
+                    contentDescription = "Avatar",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(18.dp))
@@ -280,6 +286,17 @@ private fun ProfileContent(
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("Herramientas de Administrador", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
                 Spacer(modifier = Modifier.height(8.dp))
+
+                if (!state.profileImage.isNullOrBlank()) {
+                    Button(
+                        onClick = onRemoveProfilePhoto,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5D4037)),
+                        modifier = Modifier.fillMaxWidth(0.7f)
+                    ) {
+                        Text("Quitar Foto de Perfil", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
 
                 if (state.targetAccountStatus == "BANNED") {
                     Button(
@@ -447,40 +464,42 @@ private fun ProfileContent(
                     state.createdAt?.take(10)?.let { date ->
                         ProfileRow(label = "Miembro desde", value = date)
                     }
-                    val estadoCuenta = when (state.ownAccountStatus) {
-                        "SUSPENDED" -> "Suspendida"
-                        "BANNED" -> "Baneada"
-                        else -> "Activa"
-                    }
-                    val estadoColor = when (state.ownAccountStatus) {
-                        "SUSPENDED" -> Color(0xFFFF9800)
-                        "BANNED" -> Color(0xFFE50914)
-                        else -> Color(0xFF4CAF50)
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Estado",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = estadoCuenta,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = estadoColor
-                        )
-                    }
-                    if (state.ownAccountStatus == "SUSPENDED" && state.ownSuspendedUntil != null) {
-                        ProfileRow(
-                            label = "Suspendido hasta",
-                            value = state.ownSuspendedUntil.take(10)
-                        )
+                    if (state.currentUserRole == "ADMIN") {
+                        val estadoCuenta = when (state.ownAccountStatus) {
+                            "SUSPENDED" -> "Suspendida"
+                            "BANNED" -> "Baneada"
+                            else -> "Activa"
+                        }
+                        val estadoColor = when (state.ownAccountStatus) {
+                            "SUSPENDED" -> Color(0xFFFF9800)
+                            "BANNED" -> Color(0xFFE50914)
+                            else -> Color(0xFF4CAF50)
+                        }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 6.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Estado",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = estadoCuenta,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = estadoColor
+                            )
+                        }
+                        if (state.ownAccountStatus == "SUSPENDED" && state.ownSuspendedUntil != null) {
+                            ProfileRow(
+                                label = "Suspendido hasta",
+                                value = state.ownSuspendedUntil.take(10)
+                            )
+                        }
                     }
                 }
             }

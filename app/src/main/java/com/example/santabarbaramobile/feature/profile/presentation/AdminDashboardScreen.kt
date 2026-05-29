@@ -3,9 +3,11 @@ package com.example.santabarbaramobile.feature.profile.presentation
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -150,11 +152,11 @@ private fun UsersSearchTabContent(
             Text("No se encontraron usuarios.", color = Color.Gray)
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(state.searchResults, key = { it.id ?: it.hashCode() }) { user ->
+                items(state.searchResults, key = { it.authId ?: it.hashCode() }) { user ->
                     UserAdminCard(
                         user = user,
-                        userDetails = state.userDetailsMap[user.id],
-                        onExpand = { onLoadUserDetails(user.id ?: "") },
+                        userDetails = state.userDetailsMap[user.authId],
+                        onExpand = { onLoadUserDetails(user.authId ?: "") },
                         onAction = onUserAction
                     )
                 }
@@ -216,13 +218,13 @@ fun UserAdminCard(
                         Spacer(modifier = Modifier.height(16.dp))
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             if (statusString == "BANNED") {
-                                Button(onClick = { onAction(user.id ?: "", "UNBAN", null) }, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))) { Text("Desbanear") }
+                                Button(onClick = { onAction(user.authId ?: "", "UNBAN", null) }, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))) { Text("Desbanear") }
                             } else {
                                 Button(onClick = { showSuspendDialog = true }, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800))) { Text("Suspender") }
-                                Button(onClick = { onAction(user.id ?: "", "BAN", null) }, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE50914))) { Text("Banear") }
+                                Button(onClick = { onAction(user.authId ?: "", "BAN", null) }, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE50914))) { Text("Banear") }
                             }
                         }
-                        Button(onClick = { onAction(user.id ?: "", "REMOVE_PHOTO", null) }, modifier = Modifier.fillMaxWidth().padding(top = 4.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)) { Text("Quitar Foto de Perfil") }
+                        Button(onClick = { onAction(user.authId ?: "", "REMOVE_PHOTO", null) }, modifier = Modifier.fillMaxWidth().padding(top = 4.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)) { Text("Quitar Foto de Perfil") }
                     }
                 }
             }
@@ -234,7 +236,7 @@ fun UserAdminCard(
             onDismiss = { showSuspendDialog = false },
             onConfirm = { duration ->
                 showSuspendDialog = false
-                onAction(user.id ?: "", "SUSPEND", duration)
+                onAction(user.authId ?: "", "SUSPEND", duration)
             }
         )
     }
@@ -244,7 +246,10 @@ fun UserAdminCard(
 private fun ReportsTabContent(state: AdminDashboardState, viewModel: AdminDashboardViewModel) {
     val filtros = listOf("PENDING" to "Pendientes", "DISMISSED" to "Descartados", "ACTION_TAKEN" to "Castigados", "ALL" to "Todos")
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())
+        ) {
             filtros.forEach { (code, label) ->
                 FilterChip(
                     selected = (state.currentFilter == code),
@@ -261,7 +266,12 @@ private fun ReportsTabContent(state: AdminDashboardState, viewModel: AdminDashbo
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.weight(1f)) {
                 items(state.reportsList, key = { it.id }) { reporte ->
-                    ReportCardItem(reporte = reporte, onActionExecute = { type, note, dur -> viewModel.applyAction(reporte.id.toString(), type, note, dur) })
+                    ReportCardItem(
+                        reporte = reporte,
+                        reporterUsername = state.reporterUsernamesCache[reporte.reporterAuthId],
+                        onLoadReporterUsername = { viewModel.loadReporterUsername(reporte.reporterAuthId) },
+                        onActionExecute = { type, note, dur -> viewModel.applyAction(reporte.id.toString(), type, note, dur) }
+                    )
                 }
             }
         }
@@ -269,12 +279,21 @@ private fun ReportsTabContent(state: AdminDashboardState, viewModel: AdminDashbo
 }
 
 @Composable
-fun ReportCardItem(reporte: AdminReportDto, onActionExecute: (String, String, String?) -> Unit) {
+fun ReportCardItem(
+    reporte: AdminReportDto,
+    reporterUsername: String?,
+    onLoadReporterUsername: () -> Unit,
+    onActionExecute: (String, String, String?) -> Unit
+) {
     var isExpanded by remember { mutableStateOf(false) }
     var adminNote by remember { mutableStateOf("") }
     var showSuspendDialog by remember { mutableStateOf(false) }
     val tipoTraducido = mapOf("USER" to "Usuario", "REVIEW" to "Reseña", "COMMENT" to "Comentario")[reporte.targetType] ?: reporte.targetType
     val motivoTraducido = traducirMotivo(reporte.reason)
+
+    LaunchedEffect(isExpanded) {
+        if (isExpanded && reporterUsername == null) onLoadReporterUsername()
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth().clickable { isExpanded = !isExpanded },
@@ -296,7 +315,7 @@ fun ReportCardItem(reporte: AdminReportDto, onActionExecute: (String, String, St
 
                     Text("Reportado por:", fontWeight = FontWeight.Bold, color = Color.Gray, style = MaterialTheme.typography.labelSmall)
                     Text(
-                        text = reporte.reporterAuthId.take(20) + if (reporte.reporterAuthId.length > 20) "…" else "",
+                        text = reporterUsername ?: "Cargando…",
                         color = Color(0xFF90CAF9), style = MaterialTheme.typography.bodySmall
                     )
 

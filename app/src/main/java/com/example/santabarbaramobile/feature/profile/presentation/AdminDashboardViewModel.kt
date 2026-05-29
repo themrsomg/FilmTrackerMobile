@@ -144,6 +144,17 @@ class AdminDashboardViewModel @Inject constructor(
         }
     }
 
+    fun loadReporterUsername(authId: String) {
+        if (_uiState.value.reporterUsernamesCache.containsKey(authId)) return
+        viewModelScope.launch {
+            adminRepository.getUserById(authId).onSuccess { user ->
+                _uiState.update { state ->
+                    state.copy(reporterUsernamesCache = state.reporterUsernamesCache + (authId to "@${user.username}"))
+                }
+            }
+        }
+    }
+
     fun clearMessages() {
         _uiState.update { it.copy(errorMessage = null, successMessage = null) }
     }

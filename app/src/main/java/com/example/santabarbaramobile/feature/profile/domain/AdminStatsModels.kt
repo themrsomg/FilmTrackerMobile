@@ -34,7 +34,8 @@ data class AdminDashboardState(
     val userDetailsMap: Map<String, UserDetailData> = emptyMap(),
     val currentFilter: String = "PENDING",
     val errorMessage: String? = null,
-    val successMessage: String? = null
+    val successMessage: String? = null,
+    val reporterUsernamesCache: Map<String, String> = emptyMap()
 )
 
 data class AdminUserDetailDto(
