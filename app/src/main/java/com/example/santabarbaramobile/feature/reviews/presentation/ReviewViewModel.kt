@@ -102,10 +102,18 @@ class ReviewViewModel @Inject constructor(
         }
     }
 
-    fun updateReview(reviewId: String, tvmazeId: Int, rating: Int, title: String, content: String) {
+    fun updateReview(reviewId: String, tvmazeId: Int, rating: Int, title: String, content: String, context: android.content.Context? = null, imageUri: android.net.Uri? = null) {
         viewModelScope.launch {
             repository.updateReview(reviewId, rating, title, content)
-                .onSuccess { fetchReviews(tvmazeId) }
+                .onSuccess {
+                    if (imageUri != null && context != null) {
+                        val imagePart = uriToMultipart(context, imageUri)
+                        if (imagePart != null) {
+                            repository.uploadReviewImage(reviewId, imagePart)
+                        }
+                    }
+                    fetchReviews(tvmazeId)
+                }
                 .onFailure { errorMessage = it.message }
         }
     }
@@ -160,5 +168,10 @@ class ReviewViewModel @Inject constructor(
     }
 
     fun removeReviewImage(reviewId: String, tvmazeId: Int) {
+        viewModelScope.launch {
+            repository.removeReviewImage(reviewId)
+                .onSuccess { fetchReviews(tvmazeId) }
+                .onFailure { errorMessage = it.message }
+        }
     }
 }

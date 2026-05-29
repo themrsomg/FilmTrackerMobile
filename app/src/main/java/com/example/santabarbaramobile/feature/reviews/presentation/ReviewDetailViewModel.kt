@@ -131,6 +131,29 @@ class ReviewDetailViewModel @Inject constructor(
         }
     }
 
+    fun toggleCommentLike(commentId: String, isCurrentlyLiked: Boolean) {
+        commentsUI = commentsUI.map { item ->
+            if (item.comment.id == commentId) {
+                item.copy(comment = item.comment.copy(
+                    likedByMe = !isCurrentlyLiked,
+                    likesCount = item.comment.likesCount + if (isCurrentlyLiked) -1 else 1
+                ))
+            } else item
+        }
+        viewModelScope.launch {
+            commentsRepository.toggleCommentLike(commentId, isCurrentlyLiked).onFailure {
+                commentsUI = commentsUI.map { item ->
+                    if (item.comment.id == commentId) {
+                        item.copy(comment = item.comment.copy(
+                            likedByMe = isCurrentlyLiked,
+                            likesCount = item.comment.likesCount + if (isCurrentlyLiked) 1 else -1
+                        ))
+                    } else item
+                }
+            }
+        }
+    }
+
     fun reportComment(commentId: String, reason: String, desc: String) {
         viewModelScope.launch {
             moderationRepository.createReport("COMMENT", commentId, reason, desc)

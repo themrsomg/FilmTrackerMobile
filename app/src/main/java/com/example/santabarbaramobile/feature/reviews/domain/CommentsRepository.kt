@@ -50,6 +50,19 @@ class CommentsRepository @Inject constructor(
         }
     }
 
+    suspend fun toggleCommentLike(commentId: String, isCurrentlyLiked: Boolean): Result<Unit> =
+        withContext(Dispatchers.IO) {
+            try {
+                val token = "Bearer ${tokenManager.getToken()}"
+                val response = if (isCurrentlyLiked) api.unlikeComment(token, commentId)
+                               else api.likeComment(token, commentId)
+                if (response.isSuccessful) Result.success(Unit)
+                else Result.failure(Exception("Error al procesar el like"))
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
     suspend fun removeCommentImage(commentId: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val token = "Bearer ${tokenManager.getToken()}"

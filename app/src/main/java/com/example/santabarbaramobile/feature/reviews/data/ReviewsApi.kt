@@ -54,6 +54,20 @@ interface ReviewsApi {
         @Path("reviewId") reviewId: String
     ): Response<Unit>
 
+    @DELETE("api/reviews/{reviewId}/image")
+    suspend fun removeReviewImage(
+        @Header("Authorization") token: String,
+        @Path("reviewId") reviewId: String
+    ): Response<Unit>
+
+    @Multipart
+    @POST("api/reviews/{reviewId}/image")
+    suspend fun uploadReviewImage(
+        @Header("Authorization") token: String,
+        @Path("reviewId") reviewId: String,
+        @Part image: MultipartBody.Part
+    ): Response<SingleReviewResponse>
+
     @DELETE("api/reviews/{reviewId}")
     suspend fun deleteReview(
         @Header("Authorization") token: String,

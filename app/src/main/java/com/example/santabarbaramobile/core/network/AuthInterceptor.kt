@@ -21,7 +21,7 @@ class AuthInterceptor @Inject constructor(
         val path = originalRequest.url.encodedPath
         val isAuthRoute = path.contains("/auth/login") || path.contains("/auth/register")
 
-        if ((response.code == 401 || response.code == 403) && !isAuthRoute) {
+        if (response.code == 401 && !isAuthRoute) {
             tokenManager.triggerSessionExpired()
         }
 

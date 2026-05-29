@@ -60,10 +60,12 @@ fun ReviewDialog(
                 OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Título") })
                 OutlinedTextField(value = content, onValueChange = { content = it }, label = { Text("Tu opinión") }, minLines = 3)
 
-                if (initialReview == null) {
-                    Button(onClick = { pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }) {
-                        Text(if (selectedImageUri == null) "Añadir Imagen" else "Imagen seleccionada")
-                    }
+                Button(onClick = { pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }) {
+                    Text(when {
+                        selectedImageUri != null -> "Imagen seleccionada ✓"
+                        initialReview != null && !initialReview.imageUrl.isNullOrBlank() -> "Cambiar imagen"
+                        else -> "Añadir Imagen"
+                    })
                 }
             }
         },

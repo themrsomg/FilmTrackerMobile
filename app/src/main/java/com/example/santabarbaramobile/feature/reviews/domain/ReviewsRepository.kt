@@ -133,6 +133,29 @@ class ReviewsRepository @Inject constructor(
         }
     }
 
+    suspend fun removeReviewImage(reviewId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val token = "Bearer ${tokenManager.getToken()}"
+            val res = api.removeReviewImage(token, reviewId)
+            if (res.isSuccessful) Result.success(Unit)
+            else Result.failure(Exception("Error al eliminar imagen (${res.code()})"))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun uploadReviewImage(reviewId: String, imagePart: MultipartBody.Part): Result<ReviewDto> =
+        withContext(Dispatchers.IO) {
+            try {
+                val token = "Bearer ${tokenManager.getToken()}"
+                val res = api.uploadReviewImage(token, reviewId, imagePart)
+                if (res.isSuccessful && res.body() != null) Result.success(res.body()!!.review)
+                else Result.failure(Exception("Error al subir imagen (${res.code()})"))
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
     suspend fun getReviewsByUser(userId: String, page: Int = 1): Result<List<ReviewDto>> =
         withContext(Dispatchers.IO) {
             try {

@@ -6,6 +6,7 @@ import com.example.santabarbaramobile.feature.profile.domain.UserSearchResponse
 import com.example.santabarbaramobile.feature.auth.domain.ApiResponse
 import com.example.santabarbaramobile.feature.auth.domain.UserResponse
 import com.example.santabarbaramobile.feature.profile.domain.AdminUserDetailDto
+import com.example.santabarbaramobile.feature.profile.domain.AdminStatsResponse
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -59,7 +60,7 @@ interface UsersApi {
     suspend fun getAdminUserDetails(
         @Header("Authorization") token: String,
         @Path("authId") authId: String
-    ): Response<AdminUserDetailDto>
+    ): Response<AdminStatsResponse<AdminUserDetailDto>>
 
     @DELETE("api/users/admin/users/{authId}/profile-photo")
     suspend fun removeProfilePhotoDirectly(

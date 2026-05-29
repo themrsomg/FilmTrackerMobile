@@ -217,6 +217,17 @@ class AuthRepository @Inject constructor(
         }
     }
 
+    suspend fun removeTargetProfilePhoto(authId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val token = "Bearer ${tokenManager.getToken()}"
+            val res = usersApi.removeProfilePhotoDirectly(token, authId)
+            if (res.isSuccessful) Result.success(Unit)
+            else Result.failure(Exception("Error al quitar foto (${res.code()})"))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun resendVerification(email: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val response = authApi.resendVerification(ResendVerificationRequest(email))

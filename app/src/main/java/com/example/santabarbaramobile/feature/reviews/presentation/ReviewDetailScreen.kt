@@ -12,8 +12,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -175,6 +177,11 @@ fun ReviewDetailScreen(
                                         Column {
                                             Text(user?.name ?: "Usuario", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
                                             Text("@${user?.username ?: "anonimo"}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                            Text(
+                                                text = comment.createdAt.take(10),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = Color.Gray
+                                            )
                                         }
                                     }
 
@@ -226,6 +233,28 @@ fun ReviewDetailScreen(
                                         contentDescription = "Imagen del comentario",
                                         modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(8.dp)),
                                         contentScale = ContentScale.Crop
+                                    )
+                                }
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    IconButton(
+                                        onClick = { viewModel.toggleCommentLike(comment.id, comment.likedByMe) },
+                                        modifier = Modifier.size(36.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = if (comment.likedByMe) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                                            contentDescription = "Like",
+                                            tint = if (comment.likedByMe) Color.Red else Color.Gray,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                    Text(
+                                        text = "${comment.likesCount}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color.Gray
                                     )
                                 }
                             }

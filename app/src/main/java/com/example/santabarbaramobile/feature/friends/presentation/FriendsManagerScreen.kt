@@ -101,7 +101,11 @@ fun FriendsManagerScreen(
                             isIncoming = true,
                             onAccept = { viewModel.acceptRequest(req.requestId) },
                             onReject = { viewModel.rejectRequest(req.requestId) },
-                            onCancel = {}
+                            onCancel = {},
+                            onClick = {
+                                val targetId = req.user.authId ?: req.user.id ?: ""
+                                onNavigateToProfile(targetId, req.user.username)
+                            }
                         )
                     }
                 }
@@ -117,7 +121,11 @@ fun FriendsManagerScreen(
                             req = req,
                             isIncoming = false,
                             onAccept = {}, onReject = {},
-                            onCancel = { viewModel.cancelRequest(req.requestId) }
+                            onCancel = { viewModel.cancelRequest(req.requestId) },
+                            onClick = {
+                                val targetId = req.user.authId ?: req.user.id ?: ""
+                                onNavigateToProfile(targetId, req.user.username)
+                            }
                         )
                     }
                 }
@@ -192,9 +200,9 @@ fun FriendCard(user: UserDto, onClick: () -> Unit, onDelete: () -> Unit) {
 }
 
 @Composable
-fun RequestCard(req: RequestUIItem, isIncoming: Boolean, onAccept: () -> Unit, onReject: () -> Unit, onCancel: () -> Unit) {
+fun RequestCard(req: RequestUIItem, isIncoming: Boolean, onAccept: () -> Unit, onReject: () -> Unit, onCancel: () -> Unit, onClick: () -> Unit = {}) {
     Card(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp).clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Row(modifier = Modifier.padding(16.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {

@@ -35,4 +35,16 @@ interface CommentsApi {
         @Header("Authorization") token: String,
         @Path("id") commentId: String
     ): Response<Unit>
+
+    @POST("api/comments/{commentId}/like")
+    suspend fun likeComment(
+        @Header("Authorization") token: String,
+        @Path("commentId") commentId: String
+    ): Response<Unit>
+
+    @DELETE("api/comments/{commentId}/like")
+    suspend fun unlikeComment(
+        @Header("Authorization") token: String,
+        @Path("commentId") commentId: String
+    ): Response<Unit>
 }
