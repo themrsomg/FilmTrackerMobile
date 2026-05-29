@@ -1,18 +1,14 @@
 package com.example.santabarbaramobile.feature.profile.presentation
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.santabarbaramobile.feature.friends.domain.AdminDashboardRepository
-import com.example.santabarbaramobile.feature.profile.domain.AdminReportDto
-import com.example.santabarbaramobile.feature.profile.domain.AuthStatsDto
-import com.example.santabarbaramobile.feature.profile.domain.ModerationStatsDto
-import com.example.santabarbaramobile.feature.profile.domain.ReviewStatsDto
+import com.example.santabarbaramobile.feature.profile.domain.*
 import com.example.santabarbaramobile.feature.reviews.domain.ModerationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,68 +18,81 @@ class AdminDashboardViewModel @Inject constructor(
     private val moderationRepository: ModerationRepository
 ) : ViewModel() {
 
-    var isLoading by mutableStateOf(true)
-        private set
-    var isReportsLoading by mutableStateOf(false)
-        private set
+    private val _uiState = MutableStateFlow(AdminDashboardState())
+    val uiState: StateFlow<AdminDashboardState> = _uiState.asStateFlow()
 
-    var authStats by mutableStateOf<AuthStatsDto?>(null)
-        private set
-    var reviewStats by mutableStateOf<ReviewStatsDto?>(null)
-        private set
-    var modStats by mutableStateOf<ModerationStatsDto?>(null)
-        private set
-
-    var reportsList by mutableStateOf<List<AdminReportDto>>(emptyList())
-        private set
-    var currentFilter by mutableStateOf("PENDING")
-    var errorMessage by mutableStateOf<String?>(null)
-        private set
-    var successMessage by mutableStateOf<String?>(null)
-        private set
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
     init {
         loadDashboardStats()
-        loadReports(currentFilter)
+        loadReports(_uiState.value.currentFilter)
+        setupUserSearch()
+    }
+
+    @OptIn(FlowPreview::class)
+    private fun setupUserSearch() {
+        viewModelScope.launch {
+            _searchQuery
+                .debounce(500L)
+                .filter { it.length >= 3 }
+                .distinctUntilChanged()
+                .collectLatest { query ->
+                    executeSearch(query)
+                }
+        }
+    }
+
+    fun onSearchQueryChanged(query: String) {
+        _searchQuery.value = query
+        if (query.isEmpty()) {
+            _uiState.update { it.copy(searchResults = emptyList()) }
+        }
+    }
+
+    private suspend fun executeSearch(query: String) {
+        _uiState.update { it.copy(isSearching = true) }
+        adminRepository.searchUsers(query).onSuccess { users ->
+            _uiState.update { it.copy(searchResults = users, isSearching = false) }
+        }.onFailure {
+            _uiState.update { it.copy(isSearching = false, errorMessage = "Error en búsqueda") }
+        }
     }
 
     fun loadDashboardStats() {
         viewModelScope.launch {
-            isLoading = true
+            _uiState.update { it.copy(isLoading = true) }
             val authDeferred = async { adminRepository.getAuthStats() }
             val reviewDeferred = async { adminRepository.getReviewStats() }
             val modDeferred = async { adminRepository.getModerationStats() }
 
-            authStats = authDeferred.await().getOrNull()
-            reviewStats = reviewDeferred.await().getOrNull()
-            modStats = modDeferred.await().getOrNull()
-            isLoading = false
+            _uiState.update {
+                it.copy(
+                    authStats = authDeferred.await().getOrNull(),
+                    reviewStats = reviewDeferred.await().getOrNull(),
+                    modStats = modDeferred.await().getOrNull(),
+                    isLoading = false
+                )
+            }
         }
-    }
-
-    fun changeFilter(newFilter: String) {
-        currentFilter = newFilter
-        loadReports(newFilter)
     }
 
     fun loadReports(status: String) {
         viewModelScope.launch {
-            isReportsLoading = true
-            errorMessage = null
+            _uiState.update { it.copy(isReportsLoading = true, currentFilter = status, errorMessage = null) }
             moderationRepository.getAdminReports(status, page = 1)
                 .onSuccess { response ->
-                    reportsList = response.reports ?: emptyList()
+                    _uiState.update { it.copy(reportsList = response.reports ?: emptyList(), isReportsLoading = false) }
                 }
                 .onFailure {
-                    errorMessage = "Error al obtener reportes."
+                    _uiState.update { it.copy(errorMessage = "Error al obtener reportes.", isReportsLoading = false) }
                 }
-            isReportsLoading = false
         }
     }
 
     fun applyAction(reportId: String, actionType: String, note: String, duration: String? = null) {
         viewModelScope.launch {
-            isReportsLoading = true
+            _uiState.update { it.copy(isReportsLoading = true) }
             val result = if (actionType == "DISMISS_REPORT") {
                 moderationRepository.dismissReportDirectly(reportId, note)
             } else {
@@ -91,14 +100,34 @@ class AdminDashboardViewModel @Inject constructor(
             }
 
             result.onSuccess {
-                successMessage = "Acción ejecutada correctamente."
-                loadReports(currentFilter)
+                _uiState.update { it.copy(successMessage = "Acción ejecutada correctamente.", isReportsLoading = false) }
+                loadReports(_uiState.value.currentFilter)
                 loadDashboardStats()
+            }.onFailure {
+                _uiState.update { it.copy(errorMessage = "Fallo al aplicar acción.", isReportsLoading = false) }
             }
-                .onFailure {
-                    errorMessage = "Fallo al aplicar acción."
-                }
-            isReportsLoading = false
         }
+    }
+
+    fun executeDirectUserAction(authId: String, action: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            val result = when (action) {
+                "BAN" -> adminRepository.banUser(authId, "Baneado administrativamente por Desktop/Mobile")
+                "REMOVE_PHOTO" -> adminRepository.removeProfilePhoto(authId)
+                else -> Result.success(Unit)
+            }
+
+            result.onSuccess {
+                _uiState.update { it.copy(successMessage = "Acción directa aplicada.", isLoading = false) }
+                executeSearch(_searchQuery.value)
+            }.onFailure {
+                _uiState.update { it.copy(errorMessage = "Error al aplicar acción al usuario.", isLoading = false) }
+            }
+        }
+    }
+
+    fun clearMessages() {
+        _uiState.update { it.copy(errorMessage = null, successMessage = null) }
     }
 }

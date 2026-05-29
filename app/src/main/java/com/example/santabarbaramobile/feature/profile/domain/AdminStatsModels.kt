@@ -21,3 +21,17 @@ data class AdminStatsResponse<T>(
     val message: String?,
     val data: T?
 )
+
+data class AdminDashboardState(
+    val isLoading: Boolean = true,
+    val isReportsLoading: Boolean = false,
+    val isSearching: Boolean = false,
+    val authStats: AuthStatsDto? = null,
+    val reviewStats: ReviewStatsDto? = null,
+    val modStats: ModerationStatsDto? = null,
+    val reportsList: List<AdminReportDto> = emptyList(),
+    val searchResults: List<UserDto> = emptyList(),
+    val currentFilter: String = "PENDING",
+    val errorMessage: String? = null,
+    val successMessage: String? = null
+)
