@@ -38,141 +38,136 @@ class ProfileViewModel @Inject constructor(
 
     fun loadUserProfile(userId: String? = null, username: String? = null) {
         viewModelScope.launch {
-            val isOwnProfile = (userId == null)
-
-            uiState = uiState.copy(
-                isLoading = true,
-                isOwnProfile = isOwnProfile,
-                error = null,
-                banSuccessMessage = null
-            )
+            uiState = uiState.copy(isLoading = true, error = null, banSuccessMessage = null)
 
             val token = tokenManager.getToken()
+            if (token == null) {
+                uiState = uiState.copy(isLoading = false, error = "Token no encontrado")
+                return@launch
+            }
 
-            if (token != null) {
-                val bearerToken = "Bearer $token"
+            val bearerToken = "Bearer $token"
+            var roleFromToken = "USER"
+            var myOwnAuthId = ""
 
-                var roleFromToken = "USER"
-                var myOwnAuthId = ""
-
-                try {
-                    val parts = token.split(".")
-                    if (parts.size == 3) {
-                        val payload = String(Base64.decode(parts[1], Base64.URL_SAFE))
-                        val jsonObject = JSONObject(payload)
-                        roleFromToken = jsonObject.optString("role", "USER")
-                        myOwnAuthId = jsonObject.optString("authId", "")
-                    }
-                } catch (e: Exception) { /* Ignorar si falla el parseo */ }
-
-                val watchlistDeferred = if (isOwnProfile) {
-                    async { libraryRepository.getMyWatchlist() }
-                } else null
-
-                val favoritesDeferred = if (isOwnProfile) {
-                    async { libraryRepository.getMyFavorites() }
-                } else {
-                    async { libraryRepository.getUserFavorites(userId!!) }
+            try {
+                val parts = token.split(".")
+                if (parts.size == 3) {
+                    val payload = String(Base64.decode(parts[1], Base64.URL_SAFE))
+                    val jsonObject = JSONObject(payload)
+                    roleFromToken = jsonObject.optString("role", "USER")
+                    myOwnAuthId = jsonObject.optString("authId", "")
                 }
+            } catch (e: Exception) { /* Ignorar si falla el parseo */ }
 
-                val statusDeferred = if (!isOwnProfile && userId != null) {
-                    async { friendsRepository.getRelationshipStatus(userId) }
-                } else null
+            // Perfil propio si no se pasan parámetros, o si el userId coincide con el usuario actual
+            val isOwnProfile = (userId == null && username == null) ||
+                               (userId != null && userId == myOwnAuthId)
 
-                var fetchedName = ""
-                var fetchedUsername = ""
-                var fetchedEmail = ""
-                var fetchedProfileImage: String? = null
-                var fetchedRole = "USER"
-                var fetchedCreatedAt: String? = null
-                var profileError: String? = null
+            uiState = uiState.copy(isOwnProfile = isOwnProfile)
 
-                if (isOwnProfile) {
-                    userRepository.getUserProfile(bearerToken)
-                        .onSuccess {
-                            fetchedName = it.name.orEmpty()
-                            fetchedUsername = it.username
-                            fetchedEmail = it.email ?: ""
-                            fetchedProfileImage = it.profileImage
-                            fetchedRole = it.role?.uppercase() ?: "USER"
-                            fetchedCreatedAt = it.createdAt
-                        }
-                        .onFailure { profileError = it.message }
-                } else if (!userId.isNullOrBlank()){
-                    userRepository.getUserById(userId)
-                        .onSuccess {
-                            fetchedName = it.name.orEmpty()
-                            fetchedUsername = it.username
-                            fetchedEmail = it.email ?: ""
-                            fetchedProfileImage = it.profileImage
-                            fetchedRole = it.role?.uppercase() ?: "USER"
-                        }
-                        .onFailure { profileError = it.message }
-                } else {
-                    userRepository.searchUserByUsername(username ?: "")
-                        .onSuccess {
-                            fetchedName = it.name.orEmpty()
-                            fetchedUsername = it.username
-                            fetchedEmail = it.email ?: ""
-                            fetchedProfileImage = it.profileImage
-                            fetchedRole = it.role?.uppercase() ?: "USER"
-                        }
-                        .onFailure { profileError = it.message }
+            val watchlistDeferred = if (isOwnProfile) {
+                async { libraryRepository.getMyWatchlist() }
+            } else null
+
+            val favoritesDeferred = when {
+                isOwnProfile -> async { libraryRepository.getMyFavorites() }
+                !userId.isNullOrBlank() -> async { libraryRepository.getUserFavorites(userId) }
+                else -> async { Result.success<List<LibraryItemDto>>(emptyList()) }
+            }
+
+            val statusDeferred = if (!isOwnProfile && !userId.isNullOrBlank()) {
+                async { friendsRepository.getRelationshipStatus(userId) }
+            } else null
+
+            var fetchedName = ""
+            var fetchedUsername = ""
+            var fetchedEmail = ""
+            var fetchedProfileImage: String? = null
+            var fetchedRole = "USER"
+            var fetchedCreatedAt: String? = null
+            var profileError: String? = null
+
+            if (isOwnProfile) {
+                userRepository.getUserProfile(bearerToken)
+                    .onSuccess {
+                        fetchedName = it.name.orEmpty()
+                        fetchedUsername = it.username
+                        fetchedEmail = it.email ?: ""
+                        fetchedProfileImage = it.profileImage
+                        fetchedRole = it.role?.uppercase() ?: "USER"
+                        fetchedCreatedAt = it.createdAt
+                    }
+                    .onFailure { profileError = it.message }
+            } else if (!userId.isNullOrBlank()) {
+                userRepository.getUserById(userId)
+                    .onSuccess {
+                        fetchedName = it.name.orEmpty()
+                        fetchedUsername = it.username
+                        fetchedEmail = it.email ?: ""
+                        fetchedProfileImage = it.profileImage
+                        fetchedRole = it.role?.uppercase() ?: "USER"
+                    }
+                    .onFailure { profileError = it.message }
+            } else {
+                userRepository.searchUserByUsername(username ?: "")
+                    .onSuccess {
+                        fetchedName = it.name.orEmpty()
+                        fetchedUsername = it.username
+                        fetchedEmail = it.email ?: ""
+                        fetchedProfileImage = it.profileImage
+                        fetchedRole = it.role?.uppercase() ?: "USER"
+                    }
+                    .onFailure { profileError = it.message }
+            }
+
+            val watchlistResult = watchlistDeferred?.await()
+            val favoritesResult = favoritesDeferred.await()
+            val statusResult = statusDeferred?.await()
+
+            val rawWatchlist = watchlistResult?.getOrDefault(emptyList()) ?: emptyList()
+            val rawFavorites = favoritesResult.getOrDefault(emptyList())
+            val fetchedStatus = statusResult?.getOrNull()?.status ?: "NONE"
+
+            val populatedWatchlist = rawWatchlist.map { item ->
+                async { hydrateItem(item) }
+            }.awaitAll()
+
+            val populatedFavorites = rawFavorites.map { item ->
+                async { hydrateItem(item) }
+            }.awaitAll()
+
+            if (profileError == null) {
+                uiState = uiState.copy(
+                    name = fetchedName,
+                    username = fetchedUsername,
+                    email = fetchedEmail,
+                    profileImage = fetchedProfileImage,
+                    profileRole = fetchedRole,
+                    isEmailVerified = if (isOwnProfile) tokenManager.isEmailVerified.value else false,
+                    currentUserRole = roleFromToken,
+                    watchlist = populatedWatchlist,
+                    favorites = populatedFavorites,
+                    targetAuthId = userId ?: myOwnAuthId,
+                    friendshipStatus = fetchedStatus,
+                    createdAt = fetchedCreatedAt,
+                    isLoading = false
+                )
+                if (isOwnProfile && myOwnAuthId.isNotEmpty()) {
+                    authRepository.getAccountStatus(myOwnAuthId).onSuccess { statusDto ->
+                        uiState = uiState.copy(
+                            ownAccountStatus = statusDto.accountStatus ?: "ACTIVE",
+                            ownSuspendedUntil = statusDto.suspendedUntil
+                        )
+                    }
                 }
-
-                val watchlistResult = watchlistDeferred?.await()
-                val favoritesResult = favoritesDeferred.await()
-                val statusResult = statusDeferred?.await()
-
-                val rawWatchlist = watchlistResult?.getOrDefault(emptyList()) ?: emptyList()
-                val rawFavorites = favoritesResult.getOrDefault(emptyList())
-                val fetchedStatus = statusResult?.getOrNull()?.status ?: "NONE"
-
-                val populatedWatchlist = rawWatchlist.map { item ->
-                    async { hydrateItem(item) }
-                }.awaitAll()
-
-                val populatedFavorites = rawFavorites.map { item ->
-                    async { hydrateItem(item) }
-                }.awaitAll()
-
-                if (profileError == null) {
-                    uiState = uiState.copy(
-                        name = fetchedName,
-                        username = fetchedUsername,
-                        email = fetchedEmail,
-                        profileImage = fetchedProfileImage,
-                        profileRole = fetchedRole,
-                        isEmailVerified = if (isOwnProfile) tokenManager.isEmailVerified.value else false,
-                        currentUserRole = roleFromToken,
-                        watchlist = populatedWatchlist,
-                        favorites = populatedFavorites,
-                        targetAuthId = userId ?: myOwnAuthId,
-                        friendshipStatus = fetchedStatus,
-                        createdAt = fetchedCreatedAt,
-                        isLoading = false
-                    )
-                    if (isOwnProfile && myOwnAuthId.isNotEmpty()) {
-                        authRepository.getAccountStatus(myOwnAuthId).onSuccess { statusDto ->
-                            uiState = uiState.copy(
-                                ownAccountStatus = statusDto.accountStatus ?: "ACTIVE",
-                                ownSuspendedUntil = statusDto.suspendedUntil
-                            )
-                        }
+                if (!isOwnProfile && roleFromToken == "ADMIN" && !userId.isNullOrBlank()) {
+                    authRepository.getAccountStatus(userId).onSuccess { statusDto ->
+                        uiState = uiState.copy(targetAccountStatus = statusDto.accountStatus ?: "ACTIVE")
                     }
-                    if (!isOwnProfile && roleFromToken == "ADMIN" && userId != null) {
-                        authRepository.getAccountStatus(userId).onSuccess { statusDto ->
-                            uiState = uiState.copy(targetAccountStatus = statusDto.accountStatus ?: "ACTIVE")
-                        }
-                    }
-                } else {
-                    uiState = uiState.copy(
-                        error = profileError,
-                        isLoading = false
-                    )
                 }
             } else {
-                uiState = uiState.copy(isLoading = false, error = "Token no encontrado")
+                uiState = uiState.copy(error = profileError, isLoading = false)
             }
         }
     }

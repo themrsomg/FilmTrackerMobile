@@ -34,14 +34,23 @@ fun AdminDashboardScreen(
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     var selectedTab by remember { mutableStateOf(0) }
     val tabs = listOf("Estadísticas", "Usuarios", "Bandeja de Reportes")
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(uiState.successMessage, uiState.errorMessage) {
-        if (uiState.successMessage != null || uiState.errorMessage != null) {
+    LaunchedEffect(uiState.successMessage) {
+        uiState.successMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearMessages()
+        }
+    }
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
             viewModel.clearMessages()
         }
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             Column {
                 TopAppBar(
@@ -78,6 +87,19 @@ fun AdminDashboardScreen(
             }
         }
     }
+}
+
+private fun traducirMotivo(reason: String): String = when (reason) {
+    "SPAM" -> "Spam o contenido comercial no deseado"
+    "OFFENSIVE_CONTENT" -> "Contenido ofensivo o abusivo"
+    "HARASSMENT" -> "Acoso o intimidación"
+    "HATE_SPEECH" -> "Incitación al odio o discriminación"
+    "SEXUAL_CONTENT" -> "Contenido sexual o explícito"
+    "VIOLENCE" -> "Violencia o daño físico"
+    "SPOILER" -> "Spoiler sin advertencia previa"
+    "FAKE_PROFILE" -> "Perfil falso o suplantación de identidad"
+    "INAPPROPRIATE_IMAGE" -> "Imagen inapropiada"
+    else -> "Otro motivo"
 }
 
 @Composable
@@ -220,7 +242,7 @@ fun UserAdminCard(
 
 @Composable
 private fun ReportsTabContent(state: AdminDashboardState, viewModel: AdminDashboardViewModel) {
-    val filtros = listOf("PENDING" to "Pendientes", "DISMISSED" to "Descartados", "ACTION_TAKEN" to "Castigados")
+    val filtros = listOf("PENDING" to "Pendientes", "DISMISSED" to "Descartados", "ACTION_TAKEN" to "Castigados", "ALL" to "Todos")
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             filtros.forEach { (code, label) ->
@@ -252,6 +274,7 @@ fun ReportCardItem(reporte: AdminReportDto, onActionExecute: (String, String, St
     var adminNote by remember { mutableStateOf("") }
     var showSuspendDialog by remember { mutableStateOf(false) }
     val tipoTraducido = mapOf("USER" to "Usuario", "REVIEW" to "Reseña", "COMMENT" to "Comentario")[reporte.targetType] ?: reporte.targetType
+    val motivoTraducido = traducirMotivo(reporte.reason)
 
     Card(
         modifier = Modifier.fillMaxWidth().clickable { isExpanded = !isExpanded },
@@ -261,7 +284,7 @@ fun ReportCardItem(reporte: AdminReportDto, onActionExecute: (String, String, St
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Reporte #${reporte.id} [$tipoTraducido]", fontWeight = FontWeight.Bold, color = Color(0xFFE50914))
-                    Text("Motivo: ${reporte.reason ?: "Sin especificar"}", style = MaterialTheme.typography.bodyMedium, color = Color.White)
+                    Text(motivoTraducido, style = MaterialTheme.typography.bodyMedium, color = Color.White)
                 }
                 Icon(imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown, contentDescription = null)
             }
@@ -271,14 +294,24 @@ fun ReportCardItem(reporte: AdminReportDto, onActionExecute: (String, String, St
                     HorizontalDivider(color = Color.DarkGray)
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    Text("Queja de la comunidad:", fontWeight = FontWeight.Bold, color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+                    Text("Reportado por:", fontWeight = FontWeight.Bold, color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+                    Text(
+                        text = reporte.reporterAuthId.take(20) + if (reporte.reporterAuthId.length > 20) "…" else "",
+                        color = Color(0xFF90CAF9), style = MaterialTheme.typography.bodySmall
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Descripción:", fontWeight = FontWeight.Bold, color = Color.Gray, style = MaterialTheme.typography.labelSmall)
                     Text(text = if (reporte.description.isNullOrBlank()) "Sin descripción adjunta." else reporte.description, color = Color.LightGray)
 
                     Spacer(modifier = Modifier.height(8.dp))
                     Text("Evidencia (Snapshot):", fontWeight = FontWeight.Bold, color = Color.Gray, style = MaterialTheme.typography.labelSmall)
                     Card(colors = CardDefaults.cardColors(containerColor = Color.Black), modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            text = reporte.targetSnapshot?.get("content")?.toString() ?: reporte.targetSnapshot?.get("username")?.toString() ?: "Sin evidencia",
+                            text = reporte.targetSnapshot?.get("content")?.toString()
+                                ?: reporte.targetSnapshot?.get("username")?.toString()
+                                ?: reporte.targetSnapshot?.get("name")?.toString()
+                                ?: "Sin evidencia",
                             modifier = Modifier.padding(12.dp), color = Color(0xFF4CAF50), style = MaterialTheme.typography.bodySmall
                         )
                     }
@@ -300,8 +333,10 @@ fun ReportCardItem(reporte: AdminReportDto, onActionExecute: (String, String, St
                                 Button(onClick = { showSuspendDialog = true }, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800))) { Text("Suspender") }
                             }
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                if (reporte.targetType == "REVIEW" || reporte.targetType == "COMMENT") {
-                                    Button(onClick = { onActionExecute(if(reporte.targetType == "REVIEW") "DELETE_REVIEW" else "DELETE_COMMENT", adminNote, null) }, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B0000))) { Text("Eliminar Post") }
+                                when (reporte.targetType) {
+                                    "REVIEW" -> Button(onClick = { onActionExecute("DELETE_REVIEW", adminNote, null) }, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B0000))) { Text("Eliminar Reseña") }
+                                    "COMMENT" -> Button(onClick = { onActionExecute("DELETE_COMMENT", adminNote, null) }, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B0000))) { Text("Eliminar Comentario") }
+                                    "USER" -> Button(onClick = { onActionExecute("REMOVE_PROFILE_IMAGE", adminNote, null) }, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5D4037))) { Text("Quitar Foto") }
                                 }
                                 Button(onClick = { onActionExecute("BAN_USER", adminNote, null) }, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE50914))) { Text("Banear Usuario") }
                             }
@@ -363,12 +398,28 @@ private fun MetricsTabContent(state: AdminDashboardState) {
                     }
                 }
             }
+            item {
+                state.reviewStats?.let { stats ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        MetricCard("Likes Repartidos", "${stats.totals?.get("likes")?.toInt() ?: 0}", Color(0xFFE91E63), Modifier.weight(1f))
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
+            }
             item { SectionTitle("Moderación General") }
             item {
                 state.modStats?.let { stats ->
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        MetricCard("Reportes Históricos", "${stats.totalReports ?: 0}", Color(0xFF9C27B0), Modifier.weight(1f))
                         MetricCard("Reportes Pendientes", "${stats.pendingReports ?: 0}", Color(0xFFFF9800), Modifier.weight(1f))
+                    }
+                }
+            }
+            item {
+                state.modStats?.let { stats ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         MetricCard("Reportes Resueltos", "${stats.resolvedReports ?: 0}", Color(0xFF4CAF50), Modifier.weight(1f))
+                        Spacer(modifier = Modifier.weight(1f))
                     }
                 }
             }
